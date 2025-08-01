@@ -15,7 +15,7 @@ export default {
         code: ['monospace'],
         arabic: ['Noto Sans Arabic', 'sans-serif'],
         hindi: ['Noto Sans Devanagari', 'sans-serif'],
-        urdu: ['Noto Nastaliq Urdu', 'sans-serif'],
+        urdu: ['Noto Nastaliq Urdu', 'serif'],
         chinese: ['Noto Sans SC', 'sans-serif'],
       },
       colors: {
