@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
-import { LayoutDashboard, CalendarCheck, Target, FileText, BookOpen, HeartPulse, Languages } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Target, FileText, BookOpen, HeartPulse, Languages, ShieldCheck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ const navItems = [
   { href: '/resume', label: 'Resume Optimizer', icon: FileText },
   { href: '/study', label: 'Study Assistant', icon: BookOpen },
   { href: '/journal', label: 'Mood Journal', icon: HeartPulse },
+  { href: '/vault', label: 'Data Vault', icon: ShieldCheck },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
