@@ -39,14 +39,14 @@ const prompt = ai.definePrompt({
 
   Resume Text: {{{resumeText}}}
 
-  {% if jobDescription %}
+  {{#if jobDescription}}
   Job Description: {{{jobDescription}}}
-  {% endif %}
+  {{/if}}
 
   Provide an optimized resume incorporating the suggestions. Also, provide a list of specific suggestions that you made to improve the resume.
   Ensure that the optimizedResume incorporates all the suggestions made, and that the suggestions array accurately reflects the changes.
   Do not leave any TODOs or placeholders in the optimizedResume.
-  `, // Ensure Handlebars templating is used correctly here
+  `,
 });
 
 const optimizeResumeFlow = ai.defineFlow(
