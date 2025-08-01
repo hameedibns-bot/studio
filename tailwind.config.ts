@@ -8,11 +8,11 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    fontFamily: {
+      body: ['var(--font-alegreya)'],
+      headline: ['var(--font-belleza)'],
+    },
     extend: {
-      fontFamily: {
-        body: ['var(--font-alegreya)'],
-        headline: ['var(--font-belleza)'],
-      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
