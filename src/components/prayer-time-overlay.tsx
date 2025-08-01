@@ -36,14 +36,14 @@ export function PrayerTimeOverlay({ isVisible, prayerName }: PrayerTimeOverlayPr
       <h2 className="mt-8 text-4xl font-headline font-bold text-primary">
         It's time for {prayerName} prayer.
       </h2>
-      <p className="mt-4 text-lg text-muted-foreground">
-        This app will be paused to allow for quiet reflection and prayer.
+      <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
+        This app will be paused to allow for quiet reflection and prayer. Find yourself, understand your purpose, and go to prayer for your success.
       </p>
       <div className="mt-8 text-2xl font-semibold">
         App will resume in: {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
       </div>
-      <p className="mt-12 text-sm text-muted-foreground">
-        "Verily, in the remembrance of Allah do hearts find rest." (Quran 13:28)
+      <p className="mt-12 text-sm text-muted-foreground italic">
+        "ALLAH IS MOST MERCIFULL AND BENEFICIAL FIND YOUSELF WHO IS ACCTUALLY YOU WHY YOU ARE HERE FIND AND GO TO PRAYER ITS FOR YOUR SUCCES"
       </p>
     </div>
   );
