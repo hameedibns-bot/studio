@@ -22,12 +22,15 @@ const priceUSD = (basePriceINR * conversionRate).toFixed(2);
 
 export function PricingCard() {
     return (
-        <Card className="max-w-md w-full shadow-2xl border-primary/20 bg-card">
-            <CardHeader className="text-center">
-                <CardTitle className="text-3xl font-bold font-headline">Pro+ Plan</CardTitle>
-                <CardDescription>Everything you need to unlock your full potential.</CardDescription>
+        <Card className="max-w-md w-full shadow-2xl border-primary/20 bg-card/80 backdrop-blur-sm">
+            <CardHeader className="text-center border-b border-primary/10 pb-6">
+                <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-2">
+                    <Sparkles className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-3xl font-bold font-headline text-primary">Pro+ Plan</CardTitle>
+                <CardDescription className="text-muted-foreground/80">Unlock unlimited AI coaching & premium features.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
                 <div className="text-center">
                     <span className="text-5xl font-bold">${priceUSD}</span>
                     <span className="text-muted-foreground">/ month</span>
@@ -45,17 +48,17 @@ export function PricingCard() {
                         </TooltipProvider>
                     </div>
                 </div>
-                <ul className="space-y-3">
+                <ul className="space-y-3 text-muted-foreground/90">
                     {proFeatures.map((feature) => (
                         <li key={feature} className="flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-green-500" />
+                            <CheckCircle className="w-5 h-5 text-primary" />
                             <span>{feature}</span>
                         </li>
                     ))}
                 </ul>
             </CardContent>
             <CardFooter>
-                <Button className="w-full" size="lg">
+                <Button className="w-full bg-primary/90 text-primary-foreground hover:bg-primary" size="lg">
                     <Sparkles className="w-5 h-5 mr-2" />
                     Upgrade Now
                 </Button>
@@ -63,3 +66,4 @@ export function PricingCard() {
         </Card>
     )
 }
+
