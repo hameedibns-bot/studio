@@ -4,96 +4,96 @@
 
 @layer base {
   :root {
-    --background: 204 20% 98%; /* Light, desaturated blue-gray */
+    --background: 220 20% 99%; /* Very light gray */
     --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
+    --card: 220 15% 96%;
     --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 197 71% 73%; /* Soft sky blue */
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 225 28% 25%;
+    --primary: 45 74% 47%; /* Gold */
+    --primary-foreground: 224 71.4% 4.1%;
+    --secondary: 210 60% 98%;
+    --secondary-foreground: 224 71.4% 4.1%;
     --muted: 220 14.3% 95.9%;
     --muted-foreground: 220 8.9% 43.1%;
-    --accent: 16 95% 71%; /* Warm coral */
-    --accent-foreground: 225 28% 25%;
+    --accent: 216 68% 40%; /* Sapphire Blue */
+    --accent-foreground: 210 20% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 20% 98%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 197 71% 73%;
+    --ring: 45 74% 47%;
     --radius: 0.75rem;
 
     /* Chart Colors */
-    --chart-1: 197 71% 73%; /* Sky Blue */
-    --chart-2: 150 50% 75%; /* Mint Green */
-    --chart-3: 0 72% 51%;   /* Deep Red */
-    --chart-4: 262 85% 60%; /* Purple */
-    --chart-5: 39 92% 55%;  /* Amber */
-    
+    --chart-1: 45 74% 47%;   /* Gold */
+    --chart-2: 216 68% 40%;  /* Sapphire Blue */
+    --chart-3: 210 60% 50%;  /* Desaturated Blue */
+    --chart-4: 220 8% 60%;   /* Gray */
+    --chart-5: 0 0% 80%;     /* Light Gray */
+
     /* Card Colors */
-    --card-sky-blue: 197 71% 73%;
-    --card-mint-green: 150 50% 75%;
+    --card-sky-blue: 216 68% 40%;
+    --card-mint-green: 160 50% 60%;
     --card-deep-red: 0 72% 51%;
     --card-purple-gradient: 262 85% 60%;
     --card-amber: 39 92% 55%;
 
     /* Sidebar */
-    --sidebar-background: 224 71.4% 4.1%;
+    --sidebar-background: 226 50% 10%; /* Deep Navy */
     --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 197 71% 73%;
+    --sidebar-primary: 45 74% 47%; /* Gold */
     --sidebar-primary-foreground: 224 71.4% 4.1%;
-    --sidebar-accent: 217 32.6% 17.5%;
+    --sidebar-accent: 216 68% 25%; /* Darker Sapphire */
     --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 217 32.6% 17.5%;
-    --sidebar-ring: 197 71% 73%;
+    --sidebar-border: 226 50% 15%;
+    --sidebar-ring: 45 74% 47%;
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
+    --background: 226 50% 8%; /* Near Black Navy */
     --foreground: 210 20% 98%;
-    --card: 224 71.4% 4.1%;
+    --card: 226 50% 12%; /* Deep Navy Card */
     --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
+    --popover: 226 50% 8%;
     --popover-foreground: 210 20% 98%;
-    --primary: 197 71% 73%; /* Soft sky blue */
+    --primary: 45 74% 57%; /* Gold */
     --primary-foreground: 224 71.4% 4.1%;
-    --secondary: 217 32.6% 17.5%;
+    --secondary: 216 68% 25%; /* Dark Sapphire */
     --secondary-foreground: 210 20% 98%;
-    --muted: 217 32.6% 17.5%;
+    --muted: 216 68% 25%;
     --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 16 95% 71%; /* Warm coral */
+    --accent: 216 68% 40%; /* Sapphire Blue */
     --accent-foreground: 210 20% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 20% 98%;
-    --border: 217 32.6% 17.5%;
-    --input: 217 32.6% 17.5%;
-    --ring: 197 71% 73%;
+    --border: 226 50% 18%;
+    --input: 216 68% 25%;
+    --ring: 45 74% 57%;
 
     /* Chart Colors */
-    --chart-1: 197 71% 73%;
-    --chart-2: 150 50% 65%;
-    --chart-3: 0 72% 51%;
-    --chart-4: 262 85% 60%;
-    --chart-5: 39 92% 55%;
+    --chart-1: 45 74% 57%;   /* Gold */
+    --chart-2: 216 68% 40%;  /* Sapphire Blue */
+    --chart-3: 210 60% 60%;  /* Desaturated Blue */
+    --chart-4: 220 8% 70%;   /* Gray */
+    --chart-5: 0 0% 90%;     /* Light Gray */
 
     /* Card Colors */
-    --card-sky-blue: 197 71% 73%;
-    --card-mint-green: 150 50% 75%;
+    --card-sky-blue: 216 68% 40%;
+    --card-mint-green: 160 60% 50%;
     --card-deep-red: 0 72% 51%;
     --card-purple-gradient: 262 85% 60%;
     --card-amber: 39 92% 55%;
 
     /* Sidebar */
-    --sidebar-background: 224 71.4% 4.1%;
+    --sidebar-background: 226 50% 10%; /* Deep Navy */
     --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 197 71% 73%;
+    --sidebar-primary: 45 74% 57%; /* Gold */
     --sidebar-primary-foreground: 224 71.4% 4.1%;
-    --sidebar-accent: 217 32.6% 17.5%;
+    --sidebar-accent: 216 68% 25%; /* Darker Sapphire */
     --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 217 32.6% 17.5%;
-    --sidebar-ring: 197 71% 73%;
+    --sidebar-border: 226 50% 15%;
+    --sidebar-ring: 45 74% 57%;
   }
 }
 

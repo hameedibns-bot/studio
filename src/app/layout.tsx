@@ -1,18 +1,18 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { Alegreya, Belleza } from 'next/font/google';
+import { Montserrat, Playfair_Display } from 'next/font/google';
 
-const belleza = Belleza({
+const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
-  weight: ['400'],
-  variable: '--font-belleza',
+  weight: ['400', '700'],
+  variable: '--font-playfair-display',
 });
 
-const alegreya = Alegreya({
+const montserrat = Montserrat({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
-  variable: '--font-alegreya',
+  variable: '--font-montserrat',
 });
 
 
@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${belleza.variable} ${alegreya.variable} antialiased`}>
+      <body className={`${playfairDisplay.variable} ${montserrat.variable} antialiased`}>
         {children}
         <Toaster />
       </body>

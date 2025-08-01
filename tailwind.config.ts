@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['var(--font-alegreya)'],
-        headline: ['var(--font-belleza)'],
+        body: ['var(--font-montserrat)'],
+        headline: ['var(--font-playfair-display)'],
       },
       colors: {
         background: 'hsl(var(--background))',
