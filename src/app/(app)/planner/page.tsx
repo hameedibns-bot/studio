@@ -1,3 +1,5 @@
+'use client';
+
 import { PlannerForm } from "@/components/planner-form";
 
 export default function PlannerPage() {
