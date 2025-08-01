@@ -1,11 +1,14 @@
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, CalendarCheck, Lightbulb, BarChart, Heart, Briefcase, BookOpen } from "lucide-react";
+import { ArrowRight, CalendarCheck, Lightbulb, BarChart, Heart, Briefcase, BookOpen, Sparkles } from "lucide-react";
 import { GoalProgressChart } from "@/components/goal-progress-chart";
 import { MoodJournalForm } from "@/components/mood-journal-form";
+import { Badge } from "@/components/ui/badge";
 
 export default function DashboardPage() {
+  const isPro = false; // This would be dynamic based on user auth
+
   return (
     <div className="space-y-8">
       <div>
@@ -80,11 +83,15 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card-deep-red/20 border-card-deep-red/30">
+        <Card className="bg-card-deep-red/20 border-card-deep-red/30 relative">
+          {!isPro && <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 rounded-lg"></div>}
           <CardHeader>
-             <CardTitle className="text-lg flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-card-deep-red" />
-                Career Growth
+             <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-card-deep-red" />
+                  Career Growth
+                </div>
+                <Badge variant="destructive" className="bg-card-deep-red/80 text-white">Pro</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center text-center">
@@ -95,11 +102,15 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
-        <Card className="bg-card-purple-gradient/20 border-card-purple-gradient/30">
+        <Card className="bg-card-purple-gradient/20 border-card-purple-gradient/30 relative">
+          {!isPro && <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 rounded-lg"></div>}
           <CardHeader>
-             <CardTitle className="text-lg flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-card-purple-gradient" />
-                Study Smart
+             <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-card-purple-gradient" />
+                    Study Smart
+                </div>
+                <Badge className="bg-card-purple-gradient/80 text-white border-none">Pro</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center text-center">

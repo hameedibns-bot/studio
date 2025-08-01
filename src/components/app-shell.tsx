@@ -13,9 +13,10 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarTrigger,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
-import { LayoutDashboard, CalendarCheck, Target, FileText, BookOpen, HeartPulse, Languages, ShieldCheck, Moon } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Target, FileText, BookOpen, HeartPulse, Languages, ShieldCheck, Moon, Sparkles } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -27,8 +28,8 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/planner', label: 'Daily Planner', icon: CalendarCheck },
   { href: '/goals', label: 'Goals & Habits', icon: Target },
-  { href: '/resume', label: 'Resume Optimizer', icon: FileText },
-  { href: '/study', label: 'Study Assistant', icon: BookOpen },
+  { href: '/resume', label: 'Resume Optimizer', icon: FileText, pro: true },
+  { href: '/study', label: 'Study Assistant', icon: BookOpen, pro: true },
   { href: '/journal', label: 'Mood Journal', icon: HeartPulse },
   { href: '/vault', label: 'Data Vault', icon: ShieldCheck },
 ];
@@ -71,6 +72,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link href={item.href}>
                       <item.icon />
                       <span>{item.label}</span>
+                       {item.pro && <SidebarMenuBadge>Pro</SidebarMenuBadge>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -131,7 +133,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {getPageTitle()}
               </h2>
             </div>
-            <Button variant="outline" className="bg-accent text-accent-foreground hover:bg-accent/90 border-0">Upgrade to Pro+</Button>
+            <Button variant="outline" className="bg-accent text-accent-foreground hover:bg-accent/90 border-0">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Upgrade to Pro+
+            </Button>
           </header>
           <main className="flex-1 p-4 md:p-6 lg:p-8 bg-background">
             {children}
