@@ -32,6 +32,7 @@ export default function AuthPage() {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+            <div id="recaptcha-container"></div>
             <div className="absolute top-4 left-4">
                 <Logo />
             </div>

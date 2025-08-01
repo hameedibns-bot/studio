@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +14,10 @@ import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input'
 import { isPossiblePhoneNumber } from 'react-phone-number-input'
 import { useRouter } from 'next/navigation';
+import { auth } from '@/firebase/client';
+import { RecaptchaVerifier, signInWithPhoneNumber, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail } from "firebase/auth";
+import { useToast } from '@/hooks/use-toast';
+
 
 const emailSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -31,11 +35,19 @@ type AuthFormProps = {
     method: 'email' | 'phone';
 }
 
+declare global {
+    interface Window {
+        recaptchaVerifier?: RecaptchaVerifier;
+        confirmationResult?: any;
+    }
+}
+
 export function AuthForm({ method }: AuthFormProps) {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<'input' | 'otp'>('input');
     const [loginHint, setLoginHint] = useState('');
     const router = useRouter();
+    const { toast } = useToast();
 
     const emailForm = useForm<z.infer<typeof emailSchema>>({
         resolver: zodResolver(emailSchema),
@@ -52,39 +64,109 @@ export function AuthForm({ method }: AuthFormProps) {
         defaultValues: { otp: '' },
     });
 
+    useEffect(() => {
+        if (method === 'phone' && step === 'input' && !window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response: any) => {
+                    // reCAPTCHA solved, allow signInWithPhoneNumber.
+                }
+            });
+        }
+    }, [method, step]);
 
-    const handleEmailSubmit = (values: z.infer<typeof emailSchema>) => {
-        console.log('Email submitted', values);
+    useEffect(() => {
+        const handleEmailLinkSignIn = async () => {
+            if (isSignInWithEmailLink(auth, window.location.href)) {
+                let email = window.localStorage.getItem('emailForSignIn');
+                if (!email) {
+                    email = window.prompt('Please provide your email for confirmation');
+                }
+                if (email) {
+                    setLoading(true);
+                    try {
+                        await signInWithEmailLink(auth, email, window.location.href);
+                        window.localStorage.removeItem('emailForSignIn');
+                        router.push('/dashboard');
+                    } catch (error) {
+                        toast({ variant: 'destructive', title: 'Error', description: 'Failed to sign in with email link.' });
+                        setLoading(false);
+                    }
+                }
+            }
+        };
+        handleEmailLinkSignIn();
+    }, [router, toast]);
+
+
+    const handleEmailSubmit = async (values: z.infer<typeof emailSchema>) => {
         setLoading(true);
-        // Mock API call
-        setTimeout(() => {
+        const actionCodeSettings = {
+            url: window.location.origin + '/auth',
+            handleCodeInApp: true,
+        };
+        try {
+            await sendSignInLinkToEmail(auth, values.email, actionCodeSettings);
+            window.localStorage.setItem('emailForSignIn', values.email);
             setLoginHint(values.email);
-            setStep('otp');
+            toast({ title: 'Check your email', description: `A sign-in link has been sent to ${values.email}.` });
+            // For email, we don't go to OTP step, user clicks link in email.
+            // We can show a message here.
+            setStep('otp'); // Re-using OTP step to show a message
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to send sign-in link. Please try again.' });
+        } finally {
             setLoading(false);
-        }, 1000);
+        }
     };
     
-    const handlePhoneSubmit = (values: z.infer<typeof phoneSchema>) => {
-        console.log('Phone submitted', values);
+    const handlePhoneSubmit = async (values: z.infer<typeof phoneSchema>) => {
         setLoading(true);
-        // Mock API call
-        setTimeout(() => {
+        const appVerifier = window.recaptchaVerifier!;
+        try {
+            const confirmationResult = await signInWithPhoneNumber(auth, values.phone, appVerifier);
+            window.confirmationResult = confirmationResult;
             setLoginHint(values.phone);
             setStep('otp');
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. Please try again.' });
+            window.recaptchaVerifier?.render().then((widgetId) => {
+                // @ts-ignore
+                grecaptcha.reset(widgetId);
+            });
+        } finally {
             setLoading(false);
-        }, 1000);
+        }
     };
 
-    const handleOtpSubmit = (values: z.infer<typeof otpSchema>) => {
-        console.log('OTP submitted', values);
+    const handleOtpSubmit = async (values: z.infer<typeof otpSchema>) => {
         setLoading(true);
-        // Mock API call
-        setTimeout(() => {
+        try {
+            await window.confirmationResult.confirm(values.otp);
             router.push('/dashboard');
-        }, 1000);
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Invalid OTP. Please try again.' });
+        } finally {
+            setLoading(false);
+        }
     };
-
+    
     if (step === 'otp') {
+        if (method === 'email') {
+            return (
+                <>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Check your inbox</CardTitle>
+                        <CardDescription>
+                            A sign-in link has been sent to {loginHint}. Click the link to complete your sign-in.
+                        </CardDescription>
+                    </CardHeader>
+                </>
+            )
+        }
         return (
              <>
                 <CardHeader>
@@ -122,7 +204,7 @@ export function AuthForm({ method }: AuthFormProps) {
             <>
                 <CardHeader>
                     <CardTitle className="font-headline">Continue with Email</CardTitle>
-                    <CardDescription>Enter your email to receive a one-time password.</CardDescription>
+                    <CardDescription>Enter your email to receive a secure sign-in link.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...emailForm}>
@@ -136,7 +218,7 @@ export function AuthForm({ method }: AuthFormProps) {
                             )} />
                             <Button type="submit" disabled={loading} className="w-full">
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Send OTP
+                                Send Sign-in Link
                             </Button>
                         </form>
                     </Form>
