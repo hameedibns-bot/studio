@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['var(--font-montserrat)'],
-        headline: ['var(--font-playfair-display)'],
+        body: ['var(--font-alegreya)'],
+        headline: ['var(--font-belleza)'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -19,11 +19,6 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
-          'sky-blue': 'hsl(var(--card-sky-blue))',
-          'mint-green': 'hsl(var(--card-mint-green))',
-          'deep-red': 'hsl(var(--card-deep-red))',
-          'purple-gradient': 'hsl(var(--card-purple-gradient))',
-          'amber': 'hsl(var(--card-amber))',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
