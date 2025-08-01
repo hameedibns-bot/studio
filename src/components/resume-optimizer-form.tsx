@@ -23,6 +23,15 @@ export function ResumeOptimizerForm() {
   const [result, setResult] = useState<OptimizeResumeOutput | null>(null);
   const { toast } = useToast();
 
+  const form = useForm<z.infer<typeof resumeFormSchema>>({
+    resolver: zodResolver(resumeFormSchema),
+    defaultValues: {
+      resumeText: "",
+      jobDescription: "",
+    },
+  });
+
+
   async function onSubmit(values: z.infer<typeof resumeFormSchema>) {
     setLoading(true);
     setResult(null);
