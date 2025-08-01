@@ -135,9 +135,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {getPageTitle()}
               </h2>
             </div>
-            <Button variant="outline" className="bg-accent text-accent-foreground hover:bg-accent/90 border-0">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Upgrade to Pro+
+            <Button asChild variant="outline" className="bg-accent text-accent-foreground hover:bg-accent/90 border-0">
+                <Link href="/pricing">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Upgrade to Pro+
+                </Link>
             </Button>
           </header>
           <main className="flex-1 p-4 md:p-6 lg:p-8 bg-background">
