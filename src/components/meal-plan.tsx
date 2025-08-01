@@ -64,9 +64,9 @@ const mealPlan = {
 };
 
 const getIconForTitle = (title: string) => {
-    if (title.includes("Breakfast")) return <Brain className="w-6 h-6 text-accent" />;
-    if (title.includes("Lunch")) return <Utensils className="w-6 h-6 text-accent" />;
-    if (title.includes("Dinner")) return <Fish className="w-6 h-6 text-accent" />;
+    if (title.includes("Energy & Brain Boost")) return <Brain className="w-6 h-6 text-accent" />;
+    if (title.includes("High Fiber & Balanced Carbs")) return <Utensils className="w-6 h-6 text-accent" />;
+    if (title.includes("Light, Clean & Sleep-Friendly")) return <Fish className="w-6 h-6 text-accent" />;
     if (title.includes("Snack")) return <Carrot className="w-6 h-6 text-accent" />;
     return <Leaf className="w-6 h-6 text-accent" />;
 }
