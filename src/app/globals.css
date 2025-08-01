@@ -4,31 +4,42 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 210 10% 23%;
-    --card: 210 20% 98%;
-    --card-foreground: 210 10% 23%;
-    --popover: 210 20% 98%;
-    --popover-foreground: 210 10% 23%;
+    --background: 204 10% 98%;
+    --foreground: 215 25% 27%;
+    --card: 204 10% 98%;
+    --card-foreground: 215 25% 27%;
+    --popover: 204 10% 98%;
+    --popover-foreground: 215 25% 27%;
     --primary: 221 83% 53%;
     --primary-foreground: 210 20% 98%;
-    --secondary: 210 20% 94%;
-    --secondary-foreground: 210 10% 23%;
-    --muted: 210 20% 94%;
-    --muted-foreground: 210 10% 45%;
-    --accent: 12 84% 50%;
+    --secondary: 215 28% 93%;
+    --secondary-foreground: 215 25% 27%;
+    --muted: 215 28% 93%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 16 84% 50%;
     --accent-foreground: 210 20% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 20% 98%;
-    --border: 210 20% 91%;
-    --input: 210 20% 91%;
+    --border: 215 28% 88%;
+    --input: 215 28% 88%;
     --ring: 221 83% 53%;
     --radius: 0.75rem;
-    --chart-1: 221 83% 53%;
-    --chart-2: 12 84% 50%;
-    --chart-3: 172 76% 40%;
-    --chart-4: 38 95% 53%;
-    --chart-5: 282 76% 57%;
+
+    /* Chart Colors */
+    --chart-1: 197 71% 73%; /* Sky Blue */
+    --chart-2: 150 50% 75%; /* Mint Green */
+    --chart-3: 0 72% 51%;   /* Deep Red */
+    --chart-4: 262 85% 60%; /* Purple */
+    --chart-5: 39 92% 55%;  /* Amber */
+    
+    /* Card Colors */
+    --card-sky-blue: 197 71% 73%;
+    --card-mint-green: 150 50% 75%;
+    --card-deep-red: 0 72% 51%;
+    --card-purple-gradient: 262 85% 60%;
+    --card-amber: 39 92% 55%;
+
+    /* Sidebar */
     --sidebar-background: 215 28% 17%;
     --sidebar-foreground: 210 20% 94%;
     --sidebar-primary: 221 83% 53%;
@@ -52,18 +63,29 @@
     --secondary-foreground: 210 20% 94%;
     --muted: 215 28% 22%;
     --muted-foreground: 210 20% 60%;
-    --accent: 12 84% 60%;
+    --accent: 16 84% 60%;
     --accent-foreground: 215 28% 17%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 20% 98%;
     --border: 215 28% 25%;
     --input: 215 28% 25%;
     --ring: 210 90% 61%;
-    --chart-1: 210 90% 61%;
-    --chart-2: 12 84% 60%;
-    --chart-3: 172 76% 40%;
-    --chart-4: 38 95% 53%;
-    --chart-5: 282 76% 57%;
+
+    /* Chart Colors */
+    --chart-1: 197 71% 73%;
+    --chart-2: 150 50% 65%;
+    --chart-3: 0 72% 51%;
+    --chart-4: 262 85% 60%;
+    --chart-5: 39 92% 55%;
+
+    /* Card Colors */
+    --card-sky-blue: 197 71% 73%;
+    --card-mint-green: 150 50% 75%;
+    --card-deep-red: 0 72% 51%;
+    --card-purple-gradient: 262 85% 60%;
+    --card-amber: 39 92% 55%;
+
+    /* Sidebar */
     --sidebar-background: 215 28% 17%;
     --sidebar-foreground: 210 20% 94%;
     --sidebar-primary: 210 90% 61%;
