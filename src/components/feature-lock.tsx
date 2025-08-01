@@ -9,7 +9,7 @@ export function FeatureLock() {
             </div>
             <h3 className="text-2xl font-headline font-bold mb-2">Unlock This Pro Feature</h3>
             <p className="text-muted-foreground mb-6 max-w-sm">
-                Upgrade to Pro+ to access the Resume Optimizer, Study Assistant, and other powerful AI tools to accelerate your growth.
+                Upgrade to Pro+ to access premium features like the Resume Optimizer, Study Assistant, and Data Vault to accelerate your growth and secure your data.
             </p>
             <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
                 <Sparkles className="w-5 h-5 mr-2" />

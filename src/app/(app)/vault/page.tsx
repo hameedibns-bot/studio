@@ -2,10 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, Lock, Key, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FeatureLock } from "@/components/feature-lock";
 
 export default function VaultPage() {
+  const isPro = false; // This would be dynamic based on user auth
+
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto relative">
+      {!isPro && <FeatureLock />}
       <header className="text-center">
         <div className="inline-block bg-primary/10 p-4 rounded-full">
           <ShieldCheck className="w-16 h-16 text-primary" />

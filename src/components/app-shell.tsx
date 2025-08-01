@@ -31,7 +31,7 @@ const navItems = [
   { href: '/resume', label: 'Resume Optimizer', icon: FileText, pro: true },
   { href: '/study', label: 'Study Assistant', icon: BookOpen, pro: true },
   { href: '/journal', label: 'Mood Journal', icon: HeartPulse },
-  { href: '/vault', label: 'Data Vault', icon: ShieldCheck },
+  { href: '/vault', label: 'Data Vault', icon: ShieldCheck, pro: true },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
