@@ -34,7 +34,7 @@ export function Logo({ className }: { className?: string }) {
           />
         </svg>
       </div>
-      <span className="font-headline text-xl font-bold group-data-[state=collapsed]:hidden">
+      <span className="font-headline text-xl font-bold text-foreground group-data-[state=collapsed]:hidden">
         ProLife+
       </span>
     </Link>

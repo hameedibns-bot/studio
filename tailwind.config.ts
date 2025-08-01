@@ -10,13 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Playfair Display', 'serif'],
-        code: ['monospace'],
-        arabic: ['Noto Sans Arabic', 'sans-serif'],
-        hindi: ['Noto Sans Devanagari', 'sans-serif'],
-        urdu: ['Noto Nastaliq Urdu', 'serif'],
-        chinese: ['Noto Sans SC', 'sans-serif'],
+        body: ['var(--font-alegreya)'],
+        headline: ['var(--font-belleza)'],
       },
       colors: {
         background: 'hsl(var(--background))',
