@@ -16,7 +16,7 @@ export default function AuthPage() {
     const renderInitialState = () => (
         <>
             <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Welcome to ProLife+</CardTitle>
+                <CardTitle className="text-2xl font-headline">Welcome to ProLife+</CardTitle>
                 <CardDescription>Your personal AI-powered productivity and lifestyle coach.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">

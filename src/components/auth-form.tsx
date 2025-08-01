@@ -88,7 +88,7 @@ export function AuthForm({ method }: AuthFormProps) {
         return (
              <>
                 <CardHeader>
-                    <CardTitle>Verify your identity</CardTitle>
+                    <CardTitle className="font-headline">Verify your identity</CardTitle>
                     <CardDescription>
                         An OTP was sent to {loginHint}. Please enter it below.
                     </CardDescription>
@@ -121,7 +121,7 @@ export function AuthForm({ method }: AuthFormProps) {
         return (
             <>
                 <CardHeader>
-                    <CardTitle>Continue with Email</CardTitle>
+                    <CardTitle className="font-headline">Continue with Email</CardTitle>
                     <CardDescription>Enter your email to receive a one-time password.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -149,7 +149,7 @@ export function AuthForm({ method }: AuthFormProps) {
          return (
             <>
                 <CardHeader>
-                    <CardTitle>Continue with Phone</CardTitle>
+                    <CardTitle className="font-headline">Continue with Phone</CardTitle>
                     <CardDescription>Enter your phone number to receive a one-time password.</CardDescription>
                 </CardHeader>
                 <CardContent>
