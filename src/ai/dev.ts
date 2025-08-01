@@ -4,3 +4,4 @@ config();
 import '@/ai/flows/resume-optimizer.ts';
 import '@/ai/flows/study-plan-generator.ts';
 import '@/ai/flows/smart-daily-planner.ts';
+import '@/ai/flows/mood-health-journal.ts';
