@@ -10,35 +10,35 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-    { habit: "Workout", progress: 75, goal: 100, fill: "var(--color-sky-blue)" },
-    { habit: "Read", progress: 80, goal: 100, fill: "var(--color-mint-green)" },
-    { habit: "Code", progress: 60, goal: 100, fill: "var(--color-amber)" },
-    { habit: "Meditate", progress: 100, goal: 100, fill: "var(--color-purple)" },
-    { habit: "Journal", progress: 50, goal: 100, fill: "var(--color-deep-red)" },
+    { habit: "Workout", progress: 75, goal: 100, fill: "var(--color-chart-1)" },
+    { habit: "Read", progress: 80, goal: 100, fill: "var(--color-chart-2)" },
+    { habit: "Code", progress: 60, goal: 100, fill: "var(--color-chart-3)" },
+    { habit: "Meditate", progress: 100, goal: 100, fill: "var(--color-chart-4)" },
+    { habit: "Journal", progress: 50, goal: 100, fill: "var(--color-chart-5)" },
 ];
 
 const chartConfig = {
   progress: {
     label: "Progress",
   },
-  "sky-blue": {
+  "chart-1": {
     label: "Workout",
     color: "hsl(var(--chart-1))",
   },
-  "mint-green": {
+  "chart-2": {
     label: "Read",
     color: "hsl(var(--chart-2))",
   },
-  "deep-red": {
-    label: "Journal",
+  "chart-3": {
+    label: "Code",
     color: "hsl(var(--chart-3))",
   },
-  "purple": {
+  "chart-4": {
       label: "Meditate",
       color: "hsl(var(--chart-4))",
   },
-  "amber": {
-      label: "Code",
+  "chart-5": {
+      label: "Journal",
       color: "hsl(var(--chart-5))",
   }
 }

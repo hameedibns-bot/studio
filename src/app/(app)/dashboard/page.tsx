@@ -60,10 +60,10 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-green-500/10 border-green-500/20">
+        <Card className="bg-card">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Heart className="w-5 h-5 text-green-500" />
+              <Heart className="w-5 h-5 text-destructive" />
               Mood Journal
             </CardTitle>
             <CardDescription>How are you feeling today?</CardDescription>
@@ -73,10 +73,10 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
-        <Card className="bg-amber-500/10 border-amber-500/20">
+        <Card className="bg-primary/10 border-primary/20">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-amber-500" /> 
+                <Lightbulb className="w-5 h-5 text-primary" /> 
                 Daily AI Insight
             </CardTitle>
           </CardHeader>
@@ -87,39 +87,39 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-red-500/10 border-red-500/20 relative">
+        <Card className="relative">
           {!isPro && <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 rounded-lg"></div>}
           <CardHeader>
              <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-red-500" />
+                  <Briefcase className="w-5 h-5 text-accent" />
                   Career Growth
                 </div>
-                <Badge variant="destructive" className="bg-red-500/80 text-white border-none">Pro</Badge>
+                <Badge variant="default" className="bg-accent/80 text-white border-none">Pro</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center text-center">
              <p className="text-sm text-muted-foreground mb-4">Ready to optimize your resume for that dream job?</p>
-             <Button onClick={() => router.push('/resume')} variant="outline" className="bg-transparent border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-500">
+             <Button onClick={() => router.push('/resume')} variant="outline" className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent">
                 Optimize Resume
              </Button>
           </CardContent>
         </Card>
         
-        <Card className="bg-indigo-500/10 border-indigo-500/20 relative">
+        <Card className="relative">
           {!isPro && <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 rounded-lg"></div>}
           <CardHeader>
              <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-indigo-500" />
+                    <BookOpen className="w-5 h-5 text-accent" />
                     Study Smart
                 </div>
-                <Badge className="bg-indigo-500/80 text-white border-none">Pro</Badge>
+                <Badge className="bg-accent/80 text-white border-none">Pro</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center text-center">
              <p className="text-sm text-muted-foreground mb-4">Generate a study plan for your upcoming exams.</p>
-             <Button onClick={() => router.push('/study')} variant="outline" className="bg-transparent border-indigo-500/50 text-indigo-500 hover:bg-indigo-500/10 hover:text-indigo-500">
+             <Button onClick={() => router.push('/study')} variant="outline" className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent">
                 Get Study Plan
              </Button>
           </CardContent>
