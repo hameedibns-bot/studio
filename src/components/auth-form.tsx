@@ -13,6 +13,7 @@ import { Loader2 } from 'lucide-react';
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input'
 import { isPossiblePhoneNumber } from 'react-phone-number-input'
+import { useRouter } from 'next/navigation';
 
 const emailSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -34,6 +35,7 @@ export function AuthForm({ method }: AuthFormProps) {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<'input' | 'otp'>('input');
     const [loginHint, setLoginHint] = useState('');
+    const router = useRouter();
 
     const emailForm = useForm<z.infer<typeof emailSchema>>({
         resolver: zodResolver(emailSchema),
@@ -78,7 +80,7 @@ export function AuthForm({ method }: AuthFormProps) {
         setLoading(true);
         // Mock API call
         setTimeout(() => {
-            window.location.href = '/dashboard';
+            router.push('/dashboard');
         }, 1000);
     };
 
