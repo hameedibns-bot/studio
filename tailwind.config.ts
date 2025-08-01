@@ -13,6 +13,10 @@ export default {
         body: ['Alegreya', 'serif'],
         headline: ['Belleza', 'sans-serif'],
         code: ['monospace'],
+        arabic: ['Noto Sans Arabic', 'sans-serif'],
+        hindi: ['Noto Sans Devanagari', 'sans-serif'],
+        urdu: ['Noto Sans Arabic', 'sans-serif'],
+        chinese: ['Noto Sans SC', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

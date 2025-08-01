@@ -85,6 +85,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <SelectItem value="es">Español</SelectItem>
                     <SelectItem value="hi">हिन्दी</SelectItem>
                     <SelectItem value="ar">العربية</SelectItem>
+                    <SelectItem value="ur">اردو</SelectItem>
+                    <SelectItem value="zh">中文</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
