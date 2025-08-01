@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, CalendarCheck, Lightbulb, BarChart, Heart, Briefcase, BookOpen, Sparkles } from "lucide-react";
+import { ArrowRight, CalendarCheck, Lightbulb, BarChart, Heart, Briefcase, BookOpen, Sparkles, Target } from "lucide-react";
 import { GoalProgressChart } from "@/components/goal-progress-chart";
 import { MoodJournalForm } from "@/components/mood-journal-form";
 import { Badge } from "@/components/ui/badge";
@@ -120,22 +120,22 @@ export default function DashboardPage() {
              </Button>
           </CardContent>
         </Card>
-
-        <Card className="lg:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-                <BarChart className="w-5 h-5 text-primary"/>
-                Goals & Habits Progress
-            </CardTitle>
-             <Button asChild variant="ghost" size="sm">
-              <Link href="/goals">
-                Manage Goals <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="pl-0">
-            <GoalProgressChart />
-          </CardContent>
+        
+        <Card className="lg:col-span-3 bg-black/5 border-black/10">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                    <Target className="w-5 h-5 text-black/70"/>
+                    Goals & Habits Progress
+                </CardTitle>
+                <Button asChild variant="ghost" size="sm">
+                <Link href="/goals">
+                    Manage Goals <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+                </Button>
+            </CardHeader>
+            <CardContent className="pl-0">
+                <GoalProgressChart />
+            </CardContent>
         </Card>
 
       </div>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -17,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FeatureLock } from '@/components/feature-lock';
 
 type Goal = {
   id: number;
@@ -35,6 +37,7 @@ const initialGoals: Goal[] = [
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
   const [open, setOpen] = useState(false);
+  const isPro = false; // This would be dynamic based on user auth
 
   const handleAddGoal = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -70,7 +73,8 @@ export default function GoalsPage() {
               New Goal
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="relative">
+             {!isPro && <FeatureLock />}
             <DialogHeader>
               <DialogTitle>Create a New Goal</DialogTitle>
               <DialogDescription>What new heights do you want to reach?</DialogDescription>
