@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { analyzeMoodAndSuggestWellness, MoodHealthJournalOutput } from '@/ai/flows/mood-health-journal';
 import { Loader2, Sparkles } from 'lucide-react';
-import { useToast } from './ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const journalFormSchema = z.object({
   entry: z.string().min(10, 'Please write a bit more about your day.'),
