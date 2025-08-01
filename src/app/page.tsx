@@ -9,7 +9,7 @@ export default function Home() {
       <header className="p-4 flex justify-between items-center container mx-auto">
         <Logo />
         <Button asChild variant="ghost">
-          <Link href="/dashboard">
+          <Link href="/auth">
             Login
           </Link>
         </Button>
@@ -24,7 +24,7 @@ export default function Home() {
           </p>
           <div className="mt-10">
             <Button asChild size="lg">
-              <Link href="/dashboard">
+              <Link href="/auth">
                 Get Started
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
