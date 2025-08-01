@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { optimizeResume, OptimizeResumeOutput } from '@/ai/flows/resume-optimizer';
 import { Loader2, Sparkles, FileText, CheckCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 const resumeFormSchema = z.object({
   resumeText: z.string().min(50, 'Please paste your full resume.'),
