@@ -79,19 +79,17 @@ export function UnifiedAuthForm() {
 
     // Effect to manage reCAPTCHA verifier lifecycle
     useEffect(() => {
-        if (step === 'input') {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-                'callback': () => { /* reCAPTCHA solved */ }
-            });
-        }
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible',
+            'callback': () => { /* reCAPTCHA solved */ }
+        });
     
         return () => {
             if (window.recaptchaVerifier) {
                 window.recaptchaVerifier.clear();
             }
         };
-    }, [step]);
+    }, []);
 
 
     const handleIdentifierSubmit = async (values: z.infer<typeof identifierSchema>) => {
