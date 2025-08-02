@@ -9,8 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import 'react-phone-number-input/style.css'
-import PhoneInput, { isPossiblePhoneNumber } from 'react-phone-number-input'
 import { useRouter } from 'next/navigation';
 import { auth } from '@/firebase/client';
 import { RecaptchaVerifier, signInWithPhoneNumber, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail, ConfirmationResult } from "firebase/auth";
@@ -24,16 +22,20 @@ const otpSchema = z.object({
   otp: z.string().min(6, 'Your OTP should be 6 digits.').max(6),
 });
 
+// A simple regex to check for a pattern that looks like a phone number.
+// This doesn't need to be perfect, as Firebase will do the real validation.
+const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+
+function isEmail(identifier: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+}
+
 // Store verifier and confirmation result on the window object to preserve across re-renders
 declare global {
     interface Window {
         recaptchaVerifier?: RecaptchaVerifier;
         confirmationResult?: ConfirmationResult;
     }
-}
-
-function isEmail(identifier: string) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
 }
 
 export function UnifiedAuthForm() {
@@ -85,18 +87,18 @@ export function UnifiedAuthForm() {
         if (isEmail(identifier)) {
             setAuthMethod('email');
             await handleEmailSubmit(identifier);
-        } else if (isPossiblePhoneNumber(identifier)) {
+        } else if (phoneRegex.test(identifier)) {
             setAuthMethod('phone');
             await handlePhoneSubmit(identifier);
         } else {
-            identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number." });
+            identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
             setLoading(false);
         }
     };
     
     const handleEmailSubmit = async (email: string) => {
         const actionCodeSettings = {
-            url: window.location.origin + '/auth',
+            url: window.location.origin + '/dashboard',
             handleCodeInApp: true,
         };
         try {
