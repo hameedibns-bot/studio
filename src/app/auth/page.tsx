@@ -15,8 +15,8 @@ export default function AuthPage() {
             </div>
             <Card className="w-full max-w-sm">
                  <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-headline">Welcome to ProLife+</CardTitle>
-                    <CardDescription>Sign in with your email or phone number.</CardDescription>
+                    <CardTitle className="text-2xl font-headline">Welcome</CardTitle>
+                    <CardDescription>Sign in or create an account to continue</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <UnifiedAuthForm />
