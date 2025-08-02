@@ -22,15 +22,12 @@ const otpSchema = z.object({
   otp: z.string().min(6, 'Your OTP should be 6 digits.').max(6),
 });
 
-// A simple regex to check for a pattern that looks like a phone number.
-// This doesn't need to be perfect, as Firebase will do the real validation.
 const phoneRegex = /^\+?[1-9]\d{1,14}$/;
 
 function isEmail(identifier: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
 }
 
-// Store verifier and confirmation result on the window object to preserve across re-renders
 declare global {
     interface Window {
         recaptchaVerifier?: RecaptchaVerifier;
@@ -42,7 +39,6 @@ export function UnifiedAuthForm() {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<'input' | 'otp' | 'email-sent'>('input');
     const [loginHint, setLoginHint] = useState('');
-    const [authMethod, setAuthMethod] = useState<'email' | 'phone' | null>(null);
     const router = useRouter();
     const { toast } = useToast();
 
@@ -56,7 +52,6 @@ export function UnifiedAuthForm() {
         defaultValues: { otp: '' },
     });
 
-    // Handle email link sign-in on component mount
     useEffect(() => {
         const handleEmailLinkSignIn = async () => {
             if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -71,8 +66,9 @@ export function UnifiedAuthForm() {
                         window.localStorage.removeItem('emailForSignIn');
                         router.push('/dashboard');
                     } catch (error) {
-                        toast({ variant: 'destructive', title: 'Error', description: 'Failed to sign in. The link may have expired.' });
+                        toast({ variant: 'destructive', title: 'Error', description: 'Failed to sign in. The link may have expired or been used.' });
                         setLoading(false);
+                        router.push('/auth'); // Redirect to login page on error
                     }
                 }
             }
@@ -85,48 +81,42 @@ export function UnifiedAuthForm() {
         const { identifier } = values;
 
         if (isEmail(identifier)) {
-            setAuthMethod('email');
-            await handleEmailSubmit(identifier);
+            // Email Logic
+            const actionCodeSettings = {
+                url: window.location.origin + '/dashboard', // Redirect to dashboard after sign-in
+                handleCodeInApp: true,
+            };
+            try {
+                await sendSignInLinkToEmail(auth, identifier, actionCodeSettings);
+                window.localStorage.setItem('emailForSignIn', identifier);
+                setLoginHint(identifier);
+                setStep('email-sent');
+            } catch (error: any) {
+                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to send sign-in link. Please check the email and try again.' });
+            } finally {
+                setLoading(false);
+            }
         } else if (phoneRegex.test(identifier)) {
-            setAuthMethod('phone');
-            await handlePhoneSubmit(identifier);
+            // Phone Logic
+            try {
+                if (!window.recaptchaVerifier) {
+                    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                        'size': 'invisible',
+                        'callback': () => { /* reCAPTCHA solved */ }
+                    });
+                }
+                const confirmationResult = await signInWithPhoneNumber(auth, identifier, window.recaptchaVerifier);
+                window.confirmationResult = confirmationResult;
+                setLoginHint(identifier);
+                setStep('otp');
+                toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
+            } catch (error: any) {
+                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. Please check the number and try again.' });
+            } finally {
+                setLoading(false);
+            }
         } else {
             identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
-            setLoading(false);
-        }
-    };
-    
-    const handleEmailSubmit = async (email: string) => {
-        const actionCodeSettings = {
-            url: window.location.origin + '/dashboard',
-            handleCodeInApp: true,
-        };
-        try {
-            await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-            window.localStorage.setItem('emailForSignIn', email);
-            setLoginHint(email);
-            setStep('email-sent');
-        } catch (error: any) {
-             toast({ variant: 'destructive', title: 'Error', description: 'Failed to send sign-in link. Please try again.' });
-        } finally {
-            setLoading(false);
-        }
-    };
-    
-    const handlePhoneSubmit = async (phone: string) => {
-        try {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-                'callback': () => { /* reCAPTCHA solved */ }
-            });
-            const confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
-            window.confirmationResult = confirmationResult;
-            setLoginHint(phone);
-            setStep('otp');
-            toast({ title: 'OTP Sent', description: `A code has been sent to ${phone}.`});
-        } catch (error: any) {
-             toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. Please check your number and try again.' });
-        } finally {
             setLoading(false);
         }
     };
