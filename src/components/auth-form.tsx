@@ -117,7 +117,6 @@ export function AuthForm({ method }: AuthFormProps) {
             toast({ title: 'Check your email', description: `A sign-in link has been sent to ${values.email}.` });
             setStep('otp'); // Re-using OTP step to show a message
         } catch (error: any) {
-            console.error(error);
             if (error.code === 'auth/configuration-not-found') {
                 toast({ variant: 'destructive', title: 'Configuration Error', description: 'Email sign-in is not enabled. Please enable the Email/Password provider in your Firebase console.' });
             } else {
@@ -140,7 +139,6 @@ export function AuthForm({ method }: AuthFormProps) {
             setStep('otp');
             toast({ title: 'OTP Sent', description: 'A one-time password has been sent to your phone.'});
         } catch (error: any) {
-            console.error(error);
             if (error.code === 'auth/configuration-not-found') {
                 toast({ variant: 'destructive', title: 'Configuration Error', description: 'Phone sign-in is not enabled. Please go to the Firebase console and enable the Phone provider.' });
             } else {
@@ -166,7 +164,6 @@ export function AuthForm({ method }: AuthFormProps) {
             await window.confirmationResult.confirm(values.otp);
             router.push('/dashboard');
         } catch (error) {
-            console.error(error);
             otpForm.setError("otp", { type: "manual", message: "Invalid OTP. Please try again." });
             toast({ variant: 'destructive', title: 'Error', description: 'Invalid OTP. Please try again.' });
         } finally {
