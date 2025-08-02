@@ -40,6 +40,7 @@ declare global {
     interface Window {
         recaptchaVerifier?: RecaptchaVerifier;
         confirmationResult?: ConfirmationResult;
+        grecaptcha?: any;
     }
 }
 
