@@ -139,7 +139,8 @@ export function UnifiedAuthForm() {
         try {
             await confirmationResult.confirm(values.otp);
             router.push('/dashboard');
-        } catch (error) {
+        } catch (error)
+{
             otpForm.setError("otp", { type: "manual", message: "Invalid OTP. Please try again." });
         } finally {
             setLoading(false);
