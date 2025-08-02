@@ -15,7 +15,7 @@ import PhoneInput from 'react-phone-number-input'
 import { isPossiblePhoneNumber } from 'react-phone-number-input'
 import { useRouter } from 'next/navigation';
 import { auth } from '@/firebase/client';
-import { RecaptchaVerifier, signInWithPhoneNumber, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail } from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail, ConfirmationResult } from "firebase/auth";
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -35,10 +35,11 @@ type AuthFormProps = {
     method: 'email' | 'phone';
 }
 
+// Store these on the window object to preserve them across re-renders
 declare global {
     interface Window {
         recaptchaVerifier?: RecaptchaVerifier;
-        confirmationResult?: any;
+        confirmationResult?: ConfirmationResult;
     }
 }
 
@@ -64,6 +65,7 @@ export function AuthForm({ method }: AuthFormProps) {
         defaultValues: { otp: '' },
     });
 
+    // Effect for handling email link sign-in on component mount
     useEffect(() => {
         const handleEmailLinkSignIn = async () => {
             if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -87,6 +89,19 @@ export function AuthForm({ method }: AuthFormProps) {
         handleEmailLinkSignIn();
     }, [router, toast]);
 
+    // Effect for setting up reCAPTCHA for phone auth
+    useEffect(() => {
+        if (method === 'phone') {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response: any) => { /* reCAPTCHA solved */ }
+            });
+        }
+        return () => {
+            window.recaptchaVerifier?.clear();
+        }
+    }, [method]);
+
 
     const handleEmailSubmit = async (values: z.infer<typeof emailSchema>) => {
         setLoading(true);
@@ -99,8 +114,6 @@ export function AuthForm({ method }: AuthFormProps) {
             window.localStorage.setItem('emailForSignIn', values.email);
             setLoginHint(values.email);
             toast({ title: 'Check your email', description: `A sign-in link has been sent to ${values.email}.` });
-            // For email, we don't go to OTP step, user clicks link in email.
-            // We can show a message here.
             setStep('otp'); // Re-using OTP step to show a message
         } catch (error) {
             console.error(error);
@@ -113,11 +126,10 @@ export function AuthForm({ method }: AuthFormProps) {
     const handlePhoneSubmit = async (values: z.infer<typeof phoneSchema>) => {
         setLoading(true);
         try {
-             const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-                'callback': (response: any) => { /* reCAPTCHA solved */ }
-            });
-            const confirmationResult = await signInWithPhoneNumber(auth, values.phone, recaptchaVerifier);
+            const verifier = window.recaptchaVerifier;
+            if (!verifier) throw new Error("reCAPTCHA verifier not initialized.");
+            
+            const confirmationResult = await signInWithPhoneNumber(auth, values.phone, verifier);
             window.confirmationResult = confirmationResult;
             setLoginHint(values.phone);
             setStep('otp');
@@ -125,37 +137,30 @@ export function AuthForm({ method }: AuthFormProps) {
         } catch (error) {
             console.error(error);
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. Please try again.' });
+            // Reset reCAPTCHA on error
+            window.recaptchaVerifier?.render().then((widgetId) => {
+                if(window.grecaptcha){
+                    window.grecaptcha.reset(widgetId);
+                }
+            });
         } finally {
             setLoading(false);
         }
     };
 
     const handleResendOtp = async () => {
-        setLoading(true);
-        try {
-            otpForm.reset();
-            const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-                'callback': (response: any) => { /* reCAPTCHA solved */ }
-            });
-            const confirmationResult = await signInWithPhoneNumber(auth, loginHint, recaptchaVerifier);
-            window.confirmationResult = confirmationResult;
-            toast({ title: 'OTP Resent', description: 'A new one-time password has been sent.'});
-        } catch (error) {
-            console.error(error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to resend OTP. Please try again.' });
-        } finally {
-            setLoading(false);
-        }
+       await handlePhoneSubmit({ phone: loginHint });
     }
 
     const handleOtpSubmit = async (values: z.infer<typeof otpSchema>) => {
         setLoading(true);
         try {
+            if (!window.confirmationResult) throw new Error("Confirmation result not available.");
             await window.confirmationResult.confirm(values.otp);
             router.push('/dashboard');
         } catch (error) {
             console.error(error);
+            otpForm.setError("otp", { type: "manual", message: "Invalid OTP. Please try again." });
             toast({ variant: 'destructive', title: 'Error', description: 'Invalid OTP. Please try again.' });
         } finally {
             setLoading(false);
