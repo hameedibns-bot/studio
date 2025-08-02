@@ -28,10 +28,10 @@ function isEmail(identifier: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
 }
 
+// Store verifier on the window object to persist across renders
 declare global {
     interface Window {
         recaptchaVerifier?: RecaptchaVerifier;
-        confirmationResult?: ConfirmationResult;
     }
 }
 
@@ -39,6 +39,7 @@ export function UnifiedAuthForm() {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<'input' | 'otp' | 'email-sent'>('input');
     const [loginHint, setLoginHint] = useState('');
+    const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const router = useRouter();
     const { toast } = useToast();
 
@@ -52,6 +53,7 @@ export function UnifiedAuthForm() {
         defaultValues: { otp: '' },
     });
 
+    // Effect for handling email link sign-in on component mount
     useEffect(() => {
         const handleEmailLinkSignIn = async () => {
             if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -68,7 +70,7 @@ export function UnifiedAuthForm() {
                     } catch (error) {
                         toast({ variant: 'destructive', title: 'Error', description: 'Failed to sign in. The link may have expired or been used.' });
                         setLoading(false);
-                        router.push('/auth'); // Redirect to login page on error
+                        router.push('/auth');
                     }
                 }
             }
@@ -81,9 +83,9 @@ export function UnifiedAuthForm() {
         const { identifier } = values;
 
         if (isEmail(identifier)) {
-            // Email Logic
+            // --- Email Logic ---
             const actionCodeSettings = {
-                url: window.location.origin + '/dashboard', // Redirect to dashboard after sign-in
+                url: `${window.location.origin}/dashboard`,
                 handleCodeInApp: true,
             };
             try {
@@ -91,41 +93,43 @@ export function UnifiedAuthForm() {
                 window.localStorage.setItem('emailForSignIn', identifier);
                 setLoginHint(identifier);
                 setStep('email-sent');
+                toast({ title: 'Check your email', description: `A sign-in link has been sent to ${identifier}.` });
             } catch (error: any) {
                  toast({ variant: 'destructive', title: 'Error', description: 'Failed to send sign-in link. Please check the email and try again.' });
-            } finally {
-                setLoading(false);
             }
         } else if (phoneRegex.test(identifier)) {
-            // Phone Logic
+            // --- Phone Logic ---
             try {
+                // Initialize reCAPTCHA verifier if it doesn't exist
                 if (!window.recaptchaVerifier) {
                     window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
                         'size': 'invisible',
                         'callback': () => { /* reCAPTCHA solved */ }
                     });
                 }
-                const confirmationResult = await signInWithPhoneNumber(auth, identifier, window.recaptchaVerifier);
-                window.confirmationResult = confirmationResult;
+                const result = await signInWithPhoneNumber(auth, identifier, window.recaptchaVerifier);
+                setConfirmationResult(result);
                 setLoginHint(identifier);
                 setStep('otp');
                 toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
             } catch (error: any) {
                  toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. Please check the number and try again.' });
-            } finally {
-                setLoading(false);
             }
         } else {
             identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
-            setLoading(false);
         }
+        setLoading(false);
     };
 
     const handleOtpSubmit = async (values: z.infer<typeof otpSchema>) => {
+        if (!confirmationResult) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Verification session expired. Please try again.' });
+            setStep('input');
+            return;
+        }
         setLoading(true);
         try {
-            if (!window.confirmationResult) throw new Error("Confirmation result not available.");
-            await window.confirmationResult.confirm(values.otp);
+            await confirmationResult.confirm(values.otp);
             router.push('/dashboard');
         } catch (error) {
             otpForm.setError("otp", { type: "manual", message: "Invalid OTP. Please try again." });
