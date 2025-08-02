@@ -107,7 +107,7 @@ export function UnifiedAuthForm() {
 
         if (isEmail(identifier)) {
             const actionCodeSettings = {
-                url: `${window.location.origin}/dashboard`,
+                url: `${window.location.origin}/auth`,
                 handleCodeInApp: true,
             };
             try {
@@ -170,8 +170,11 @@ export function UnifiedAuthForm() {
             const provider = new GoogleAuthProvider();
             await signInWithPopup(auth, provider);
             router.push('/dashboard');
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: 'Could not sign in with Google. Please try again.' });
+        } catch (error: any) {
+            // Don't show an error toast if the user closes the popup
+            if (error.code !== 'auth/popup-closed-by-user') {
+                toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: 'Could not sign in with Google. Please try again.' });
+            }
         } finally {
             setLoading(false);
         }
