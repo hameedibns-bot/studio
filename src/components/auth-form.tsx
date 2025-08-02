@@ -40,7 +40,6 @@ declare global {
     interface Window {
         recaptchaVerifier?: RecaptchaVerifier;
         confirmationResult?: ConfirmationResult;
-        grecaptcha?: any;
     }
 }
 
@@ -117,7 +116,7 @@ export function AuthForm({ method }: AuthFormProps) {
             toast({ title: 'Check your email', description: `A sign-in link has been sent to ${values.email}.` });
             setStep('otp'); // Re-using OTP step to show a message
         } catch (error: any) {
-            if (error.code === 'auth/configuration-not-found') {
+             if (error.code === 'auth/configuration-not-found') {
                 toast({ variant: 'destructive', title: 'Configuration Error', description: 'Email sign-in is not enabled. Please enable the Email/Password provider in your Firebase console.' });
             } else {
                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to send sign-in link. Please try again.' });
@@ -142,7 +141,7 @@ export function AuthForm({ method }: AuthFormProps) {
             if (error.code === 'auth/configuration-not-found') {
                 toast({ variant: 'destructive', title: 'Configuration Error', description: 'Phone sign-in is not enabled. Please go to the Firebase console and enable the Phone provider.' });
             } else {
-                toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. This can happen if Phone Sign-In is not enabled in your Firebase project. Please try again.' });
+                toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. Please try again.' });
             }
         } finally {
             setLoading(false);
