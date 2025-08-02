@@ -15,7 +15,7 @@ import PhoneInput from 'react-phone-number-input'
 import { isPossiblePhoneNumber } from 'react-phone-number-input'
 import { useRouter } from 'next/navigation';
 import { auth } from '@/firebase/client';
-import { RecaptchaVerifier, signInWithPhoneNumber, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail, ConfirmationResult, FirebaseError } from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail, ConfirmationResult } from "firebase/auth";
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -116,9 +116,9 @@ export function AuthForm({ method }: AuthFormProps) {
             setLoginHint(values.email);
             toast({ title: 'Check your email', description: `A sign-in link has been sent to ${values.email}.` });
             setStep('otp'); // Re-using OTP step to show a message
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            if (error instanceof FirebaseError && error.code === 'auth/configuration-not-found') {
+            if (error.code === 'auth/configuration-not-found') {
                 toast({ variant: 'destructive', title: 'Configuration Error', description: 'Email sign-in is not enabled. Please enable the Email/Password provider in your Firebase console.' });
             } else {
                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to send sign-in link. Please try again.' });
@@ -139,9 +139,9 @@ export function AuthForm({ method }: AuthFormProps) {
             setLoginHint(values.phone);
             setStep('otp');
             toast({ title: 'OTP Sent', description: 'A one-time password has been sent to your phone.'});
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            if (error instanceof FirebaseError && error.code === 'auth/configuration-not-found') {
+            if (error.code === 'auth/configuration-not-found') {
                 toast({ variant: 'destructive', title: 'Configuration Error', description: 'Phone sign-in is not enabled. Please go to the Firebase console and enable the Phone provider.' });
             } else {
                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. This can happen if Phone Sign-In is not enabled in your Firebase project. Please try again.' });
