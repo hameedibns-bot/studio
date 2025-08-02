@@ -137,13 +137,11 @@ export function AuthForm({ method }: AuthFormProps) {
             toast({ title: 'OTP Sent', description: 'A one-time password has been sent to your phone.'});
         } catch (error) {
             console.error(error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. Please try again.' });
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. This can happen if Phone Sign-In is not enabled in your Firebase project. Please try again.' });
             // Reset reCAPTCHA on error
-            window.recaptchaVerifier?.render().then((widgetId) => {
-                if(window.grecaptcha){
-                    window.grecaptcha.reset(widgetId);
-                }
-            });
+            if (window.grecaptcha && window.recaptchaVerifier) {
+                window.grecaptcha.reset(window.recaptchaVerifier.widgetId);
+            }
         } finally {
             setLoading(false);
         }
