@@ -28,13 +28,6 @@ function isEmail(identifier: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
 }
 
-declare global {
-    interface Window {
-        recaptchaVerifier?: RecaptchaVerifier;
-        confirmationResult?: ConfirmationResult;
-    }
-}
-
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
         <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
@@ -86,16 +79,13 @@ export function UnifiedAuthForm() {
         };
         handleEmailLinkSignIn();
     }, [router, toast]);
-
-    useEffect(() => {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'invisible',
-            'callback': () => { /* reCAPTCHA solved */ }
-        });
     
+    // This effect ensures the reCAPTCHA verifier is cleaned up
+    useEffect(() => {
+        const verifier = (window as any).recaptchaVerifier;
         return () => {
-            if (window.recaptchaVerifier) {
-                window.recaptchaVerifier.clear();
+            if (verifier) {
+                verifier.clear();
             }
         };
     }, []);
@@ -121,18 +111,21 @@ export function UnifiedAuthForm() {
             }
         } else if (phoneRegex.test(identifier)) {
             try {
-                if (!window.recaptchaVerifier) {
-                    throw new Error("reCAPTCHA verifier not initialized.");
-                }
-                const result = await signInWithPhoneNumber(auth, identifier, window.recaptchaVerifier);
+                const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    'size': 'invisible'
+                });
+                (window as any).recaptchaVerifier = verifier;
+                
+                const result = await signInWithPhoneNumber(auth, identifier, verifier);
                 setConfirmationResult(result);
                 setLoginHint(identifier);
                 setStep('otp');
                 toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
             } catch (error: any) {
                  toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again. ${error.message}` });
-                 if (window.recaptchaVerifier) {
-                    window.recaptchaVerifier.clear();
+                 const verifier = (window as any).recaptchaVerifier;
+                 if (verifier) {
+                    verifier.clear();
                  }
             }
         } else {
@@ -162,6 +155,10 @@ export function UnifiedAuthForm() {
         setStep('input');
         identifierForm.reset();
         otpForm.reset();
+        const verifier = (window as any).recaptchaVerifier;
+        if (verifier) {
+            verifier.clear();
+        }
     }
 
     const handleGoogleSignIn = async () => {
@@ -171,7 +168,6 @@ export function UnifiedAuthForm() {
             await signInWithPopup(auth, provider);
             router.push('/dashboard');
         } catch (error: any) {
-            // Don't show an error toast if the user closes the popup
             if (error.code !== 'auth/popup-closed-by-user') {
                 toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: 'Could not sign in with Google. Please try again.' });
             }
