@@ -124,9 +124,6 @@ export function UnifiedAuthForm() {
                 toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
             } catch (error: any) {
                  toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again. ${error.message}` });
-                 if (window.recaptchaVerifier) {
-                    window.recaptchaVerifier.clear();
-                 }
             }
         } else {
             identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
