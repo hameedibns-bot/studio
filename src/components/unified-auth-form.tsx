@@ -32,6 +32,7 @@ function isEmail(identifier: string) {
 declare global {
     interface Window {
         recaptchaVerifier?: RecaptchaVerifier;
+        confirmationResult?: ConfirmationResult;
     }
 }
 
