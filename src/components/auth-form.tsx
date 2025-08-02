@@ -144,10 +144,6 @@ export function AuthForm({ method }: AuthFormProps) {
             } else {
                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. This can happen if Phone Sign-In is not enabled in your Firebase project. Please try again.' });
             }
-            // Reset reCAPTCHA on error
-            if (window.grecaptcha && window.recaptchaVerifier) {
-                window.grecaptcha.reset(window.recaptchaVerifier.widgetId);
-            }
         } finally {
             setLoading(false);
         }
