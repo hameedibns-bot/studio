@@ -35,11 +35,10 @@ type AuthFormProps = {
     method: 'email' | 'phone';
 }
 
-// Store these on the window object to preserve them across re-renders
+// Store verifier on the window object to preserve it across re-renders
 declare global {
     interface Window {
         recaptchaVerifier?: RecaptchaVerifier;
-        confirmationResult?: ConfirmationResult;
     }
 }
 
@@ -47,6 +46,7 @@ export function AuthForm({ method }: AuthFormProps) {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<'input' | 'otp'>('input');
     const [loginHint, setLoginHint] = useState('');
+    const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const router = useRouter();
     const { toast } = useToast();
 
@@ -132,8 +132,8 @@ export function AuthForm({ method }: AuthFormProps) {
             const verifier = window.recaptchaVerifier;
             if (!verifier) throw new Error("reCAPTCHA verifier not initialized.");
             
-            const confirmationResult = await signInWithPhoneNumber(auth, values.phone, verifier);
-            window.confirmationResult = confirmationResult;
+            const result = await signInWithPhoneNumber(auth, values.phone, verifier);
+            setConfirmationResult(result);
             setLoginHint(values.phone);
             setStep('otp');
             toast({ title: 'OTP Sent', description: 'A one-time password has been sent to your phone.'});
@@ -155,8 +155,8 @@ export function AuthForm({ method }: AuthFormProps) {
     const handleOtpSubmit = async (values: z.infer<typeof otpSchema>) => {
         setLoading(true);
         try {
-            if (!window.confirmationResult) throw new Error("Confirmation result not available.");
-            await window.confirmationResult.confirm(values.otp);
+            if (!confirmationResult) throw new Error("Confirmation result not available.");
+            await confirmationResult.confirm(values.otp);
             router.push('/dashboard');
         } catch (error) {
             otpForm.setError("otp", { type: "manual", message: "Invalid OTP. Please try again." });
