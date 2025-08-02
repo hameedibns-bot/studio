@@ -28,11 +28,9 @@ function isEmail(identifier: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
 }
 
-// Store verifier on the window object to persist across renders
 declare global {
     interface Window {
         recaptchaVerifier?: RecaptchaVerifier;
-        confirmationResult?: ConfirmationResult;
     }
 }
 
@@ -79,12 +77,28 @@ export function UnifiedAuthForm() {
         handleEmailLinkSignIn();
     }, [router, toast]);
 
+    // Effect to manage reCAPTCHA verifier lifecycle
+    useEffect(() => {
+        if (step === 'input') {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': () => { /* reCAPTCHA solved */ }
+            });
+        }
+    
+        return () => {
+            if (window.recaptchaVerifier) {
+                window.recaptchaVerifier.clear();
+            }
+        };
+    }, [step]);
+
+
     const handleIdentifierSubmit = async (values: z.infer<typeof identifierSchema>) => {
         setLoading(true);
         const { identifier } = values;
 
         if (isEmail(identifier)) {
-            // --- Email Logic ---
             const actionCodeSettings = {
                 url: `${window.location.origin}/dashboard`,
                 handleCodeInApp: true,
@@ -99,14 +113,9 @@ export function UnifiedAuthForm() {
                  toast({ variant: 'destructive', title: 'Error', description: 'Failed to send sign-in link. Please check the email and try again.' });
             }
         } else if (phoneRegex.test(identifier)) {
-            // --- Phone Logic ---
             try {
-                // Initialize reCAPTCHA verifier if it doesn't exist
                 if (!window.recaptchaVerifier) {
-                    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                        'size': 'invisible',
-                        'callback': () => { /* reCAPTCHA solved */ }
-                    });
+                    throw new Error("reCAPTCHA verifier not initialized.");
                 }
                 const result = await signInWithPhoneNumber(auth, identifier, window.recaptchaVerifier);
                 setConfirmationResult(result);
@@ -114,7 +123,10 @@ export function UnifiedAuthForm() {
                 setStep('otp');
                 toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
             } catch (error: any) {
-                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. Please check the number and try again.' });
+                 toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again. ${error.message}` });
+                 if (window.recaptchaVerifier) {
+                    window.recaptchaVerifier.clear();
+                 }
             }
         } else {
             identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
@@ -138,13 +150,19 @@ export function UnifiedAuthForm() {
             setLoading(false);
         }
     };
+    
+    const handleBack = () => {
+        setStep('input');
+        identifierForm.reset();
+        otpForm.reset();
+    }
 
     if (step === 'email-sent') {
         return (
             <div className="text-center space-y-4">
                 <h3 className="font-headline text-xl">Check your inbox</h3>
                 <p className="text-muted-foreground text-sm">A sign-in link has been sent to <span className="font-semibold text-foreground">{loginHint}</span>. Click the link there to complete your sign-in.</p>
-                <Button variant="outline" onClick={() => { setStep('input'); identifierForm.reset(); }}>Use another account</Button>
+                <Button variant="outline" onClick={handleBack}>Use another account</Button>
             </div>
         );
     }
@@ -171,7 +189,7 @@ export function UnifiedAuthForm() {
                         </Button>
                     </form>
                 </Form>
-                 <Button variant="link" size="sm" className="p-0 h-auto w-full" onClick={() => setStep('input')}>Use another method</Button>
+                 <Button variant="link" size="sm" className="p-0 h-auto w-full" onClick={handleBack}>Use another method</Button>
             </div>
         );
     }
