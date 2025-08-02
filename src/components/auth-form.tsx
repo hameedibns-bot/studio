@@ -65,17 +65,6 @@ export function AuthForm({ method }: AuthFormProps) {
     });
 
     useEffect(() => {
-        if (method === 'phone' && step === 'input' && !window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-                'callback': (response: any) => {
-                    // reCAPTCHA solved, allow signInWithPhoneNumber.
-                }
-            });
-        }
-    }, [method, step]);
-
-    useEffect(() => {
         const handleEmailLinkSignIn = async () => {
             if (isSignInWithEmailLink(auth, window.location.href)) {
                 let email = window.localStorage.getItem('emailForSignIn');
@@ -123,23 +112,42 @@ export function AuthForm({ method }: AuthFormProps) {
     
     const handlePhoneSubmit = async (values: z.infer<typeof phoneSchema>) => {
         setLoading(true);
-        const appVerifier = window.recaptchaVerifier!;
         try {
-            const confirmationResult = await signInWithPhoneNumber(auth, values.phone, appVerifier);
+             const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response: any) => { /* reCAPTCHA solved */ }
+            });
+            const confirmationResult = await signInWithPhoneNumber(auth, values.phone, recaptchaVerifier);
             window.confirmationResult = confirmationResult;
             setLoginHint(values.phone);
             setStep('otp');
+            toast({ title: 'OTP Sent', description: 'A one-time password has been sent to your phone.'});
         } catch (error) {
             console.error(error);
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to send OTP. Please try again.' });
-            window.recaptchaVerifier?.render().then((widgetId) => {
-                // @ts-ignore
-                grecaptcha.reset(widgetId);
-            });
         } finally {
             setLoading(false);
         }
     };
+
+    const handleResendOtp = async () => {
+        setLoading(true);
+        try {
+            otpForm.reset();
+            const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response: any) => { /* reCAPTCHA solved */ }
+            });
+            const confirmationResult = await signInWithPhoneNumber(auth, loginHint, recaptchaVerifier);
+            window.confirmationResult = confirmationResult;
+            toast({ title: 'OTP Resent', description: 'A new one-time password has been sent.'});
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to resend OTP. Please try again.' });
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const handleOtpSubmit = async (values: z.infer<typeof otpSchema>) => {
         setLoading(true);
@@ -193,7 +201,7 @@ export function AuthForm({ method }: AuthFormProps) {
                     </Form>
                 </CardContent>
                 <CardFooter className="text-sm text-center block">
-                    Didn't receive it? <Button variant="link" size="sm" className="p-0 h-auto">Resend OTP</Button>
+                    Didn't receive it? <Button variant="link" size="sm" className="p-0 h-auto" onClick={handleResendOtp} disabled={loading}>Resend OTP</Button>
                 </CardFooter>
             </>
         )
