@@ -17,7 +17,7 @@ import {
   SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
-import { LayoutDashboard, CalendarCheck, Target, FileText, BookOpen, HeartPulse, Languages, ShieldCheck, Moon, Sparkles, Salad } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Target, FileText, BookOpen, HeartPulse, Languages, ShieldCheck, Moon, Sparkles, Salad, Mic } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ const navItems = [
   { href: '/study', label: 'Study Assistant', icon: BookOpen, pro: true },
   { href: '/journal', label: 'Mood Journal', icon: HeartPulse },
   { href: '/nutrition', label: 'Nutrition', icon: Salad },
+  { href: '/voice-coach', label: 'Voice Coach', icon: Mic },
   { href: '/vault', label: 'Data Vault', icon: ShieldCheck, pro: true },
 ];
 
