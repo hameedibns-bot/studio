@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,7 +11,16 @@ import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/firebase/client';
-import { RecaptchaVerifier, signInWithPhoneNumber, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail, ConfirmationResult, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { 
+    RecaptchaVerifier, 
+    signInWithPhoneNumber, 
+    signInWithEmailLink, 
+    isSignInWithEmailLink, 
+    sendSignInLinkToEmail, 
+    ConfirmationResult, 
+    GoogleAuthProvider, 
+    signInWithPopup 
+} from "firebase/auth";
 import { useToast } from '@/hooks/use-toast';
 
 const identifierSchema = z.object({
@@ -37,7 +46,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-
 export function UnifiedAuthForm() {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<'input' | 'otp' | 'email-sent'>('input');
@@ -45,6 +53,7 @@ export function UnifiedAuthForm() {
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const router = useRouter();
     const { toast } = useToast();
+    const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
     const identifierForm = useForm<z.infer<typeof identifierSchema>>({
         resolver: zodResolver(identifierSchema),
@@ -56,6 +65,7 @@ export function UnifiedAuthForm() {
         defaultValues: { otp: '' },
     });
 
+    // Handle email link sign-in on component mount
     useEffect(() => {
         const handleEmailLinkSignIn = async () => {
             if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -71,8 +81,9 @@ export function UnifiedAuthForm() {
                         router.push('/dashboard');
                     } catch (error) {
                         toast({ variant: 'destructive', title: 'Error', description: 'Failed to sign in. The link may have expired or been used.' });
-                        setLoading(false);
                         router.push('/auth');
+                    } finally {
+                        setLoading(false);
                     }
                 }
             }
@@ -80,16 +91,12 @@ export function UnifiedAuthForm() {
         handleEmailLinkSignIn();
     }, [router, toast]);
     
-    // This effect ensures the reCAPTCHA verifier is cleaned up
+    // Cleanup reCAPTCHA on unmount
     useEffect(() => {
-        const verifier = (window as any).recaptchaVerifier;
         return () => {
-            if (verifier) {
-                verifier.clear();
-            }
+            recaptchaVerifierRef.current?.clear();
         };
     }, []);
-
 
     const handleIdentifierSubmit = async (values: z.infer<typeof identifierSchema>) => {
         setLoading(true);
@@ -111,22 +118,20 @@ export function UnifiedAuthForm() {
             }
         } else if (phoneRegex.test(identifier)) {
             try {
-                const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                    'size': 'invisible'
-                });
-                (window as any).recaptchaVerifier = verifier;
-                
+                if (!recaptchaVerifierRef.current) {
+                    recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                        'size': 'invisible'
+                    });
+                }
+                const verifier = recaptchaVerifierRef.current;
                 const result = await signInWithPhoneNumber(auth, identifier, verifier);
                 setConfirmationResult(result);
                 setLoginHint(identifier);
                 setStep('otp');
                 toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
             } catch (error: any) {
-                 toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again. ${error.message}` });
-                 const verifier = (window as any).recaptchaVerifier;
-                 if (verifier) {
-                    verifier.clear();
-                 }
+                 toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again.` });
+                 recaptchaVerifierRef.current?.clear();
             }
         } else {
             identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
@@ -155,11 +160,8 @@ export function UnifiedAuthForm() {
         setStep('input');
         identifierForm.reset();
         otpForm.reset();
-        const verifier = (window as any).recaptchaVerifier;
-        if (verifier) {
-            verifier.clear();
-        }
-    }
+        recaptchaVerifierRef.current?.clear();
+    };
 
     const handleGoogleSignIn = async () => {
         setLoading(true);
