@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Mic, MicOff, Languages, Play, Square } from 'lucide-react';
+import { Loader2, Mic, MicOff, Languages, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateSpokenResponse, VoiceCoachInput } from '@/ai/flows/voice-coach-flow';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -38,16 +38,14 @@ export default function VoiceCoachPage() {
             recognitionRef.current.lang = selectedLang;
 
             recognitionRef.current.onresult = (event: any) => {
-                let interimTranscript = '';
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
                         finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
                     }
                 }
-                setTranscript(transcript + finalTranscript + interimTranscript);
+                 // Use functional update to avoid stale state
+                setTranscript(prev => prev + finalTranscript);
             };
 
             recognitionRef.current.onerror = (event: any) => {
@@ -57,22 +55,30 @@ export default function VoiceCoachPage() {
         } else {
              toast({ variant: 'destructive', title: 'Not Supported', description: "Your browser doesn't support speech recognition." });
         }
-    }, [selectedLang, toast, transcript]);
+    }, [selectedLang, toast]);
     
     useEffect(() => {
       if (audioUrl && audioRef.current) {
-        audioRef.current.play();
+        audioRef.current.play().catch(e => {
+            console.error("Audio playback failed:", e);
+            toast({ variant: 'destructive', title: 'Audio Error', description: 'Could not play audio.' });
+        });
       }
-    }, [audioUrl]);
+    }, [audioUrl, toast]);
 
     const toggleListening = () => {
+        if (!recognitionRef.current) {
+            toast({ variant: 'destructive', title: 'Not Supported', description: "Speech recognition is not available in your browser." });
+            return;
+        }
+
         if (isListening) {
-            recognitionRef.current?.stop();
+            recognitionRef.current.stop();
             setIsListening(false);
         } else {
             setTranscript('');
             setAudioUrl(null);
-            recognitionRef.current?.start();
+            recognitionRef.current.start();
             setIsListening(true);
         }
     };
@@ -93,6 +99,7 @@ export default function VoiceCoachPage() {
                 throw new Error('No audio data received.');
             }
         } catch (e) {
+            console.error("AI Error:", e);
             toast({ variant: 'destructive', title: 'AI Error', description: 'Failed to generate spoken response.' });
         } finally {
             setLoading(false);
@@ -103,7 +110,7 @@ export default function VoiceCoachPage() {
         if(audioRef.current){
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
-            setAudioUrl(null);
+            setAudioUrl(null); // Clear audio state to hide the player
         }
     }
 

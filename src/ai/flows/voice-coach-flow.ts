@@ -63,7 +63,7 @@ const voiceCoachFlow = ai.defineFlow(
       prompt: responseText,
     });
     
-    if (!media) {
+    if (!media || !media.url) {
       throw new Error('No media was returned from the text-to-speech model.');
     }
 
