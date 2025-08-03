@@ -91,8 +91,14 @@ export function UnifiedAuthForm() {
         handleEmailLinkSignIn();
     }, [router, toast]);
     
-    // Cleanup reCAPTCHA on unmount
+    // Initialize and clean up reCAPTCHA
     useEffect(() => {
+        if (!recaptchaVerifierRef.current) {
+            recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible'
+            });
+        }
+        
         return () => {
             recaptchaVerifierRef.current?.clear();
         };
@@ -118,12 +124,10 @@ export function UnifiedAuthForm() {
             }
         } else if (phoneRegex.test(identifier)) {
             try {
-                if (!recaptchaVerifierRef.current) {
-                    recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                        'size': 'invisible'
-                    });
-                }
                 const verifier = recaptchaVerifierRef.current;
+                if (!verifier) {
+                    throw new Error("reCAPTCHA verifier not initialized.");
+                }
                 const result = await signInWithPhoneNumber(auth, identifier, verifier);
                 setConfirmationResult(result);
                 setLoginHint(identifier);
@@ -131,7 +135,6 @@ export function UnifiedAuthForm() {
                 toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
             } catch (error: any) {
                  toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again.` });
-                 recaptchaVerifierRef.current?.clear();
             }
         } else {
             identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
@@ -160,7 +163,6 @@ export function UnifiedAuthForm() {
         setStep('input');
         identifierForm.reset();
         otpForm.reset();
-        recaptchaVerifierRef.current?.clear();
     };
 
     const handleGoogleSignIn = async () => {
