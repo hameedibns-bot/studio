@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -49,12 +49,11 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function UnifiedAuthForm() {
     const [loading, setLoading] = useState(false);
-    const [step, setStep] = useState<'input' | 'otp' | 'email-sent' | 'google' | 'guest'>('input');
+    const [step, setStep] = useState<'input' | 'otp' | 'email-sent'>('input');
     const [loginHint, setLoginHint] = useState('');
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const router = useRouter();
     const { toast } = useToast();
-    const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
     // Handle email link sign-in on component mount
     useEffect(() => {
@@ -80,16 +79,17 @@ export function UnifiedAuthForm() {
             }
         };
         handleEmailLinkSignIn();
-    }, [router, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     
     // Initialize reCAPTCHA on mount
     useEffect(() => {
-        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
             'size': 'invisible'
         });
         
         return () => {
-            recaptchaVerifierRef.current?.clear();
+            window.recaptchaVerifier.clear();
         };
     }, []);
 
@@ -99,7 +99,7 @@ export function UnifiedAuthForm() {
 
         if (isEmail(identifier)) {
             const actionCodeSettings = {
-                url: `${window.location.origin}/auth`,
+                url: `${window.location.origin}/dashboard`,
                 handleCodeInApp: true,
             };
             try {
@@ -113,10 +113,7 @@ export function UnifiedAuthForm() {
             }
         } else if (phoneRegex.test(identifier)) {
             try {
-                const verifier = recaptchaVerifierRef.current;
-                if (!verifier) {
-                    throw new Error("reCAPTCHA verifier not initialized.");
-                }
+                const verifier = window.recaptchaVerifier;
                 const result = await signInWithPhoneNumber(auth, identifier, verifier);
                 setConfirmationResult(result);
                 setLoginHint(identifier);
@@ -124,9 +121,9 @@ export function UnifiedAuthForm() {
                 toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
             } catch (error: any) {
                  toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again. ${error.message}` });
-                 if (recaptchaVerifierRef.current) {
-                    recaptchaVerifierRef.current.clear();
-                 }
+                 window.recaptchaVerifier.render().then((widgetId) => {
+                    grecaptcha.reset(widgetId);
+                 });
             }
         } else {
             identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
@@ -159,7 +156,6 @@ export function UnifiedAuthForm() {
 
     const handleGoogleSignIn = async () => {
         setLoading(true);
-        setStep('google');
         try {
             const provider = new GoogleAuthProvider();
             await signInWithPopup(auth, provider);
@@ -170,13 +166,11 @@ export function UnifiedAuthForm() {
             }
         } finally {
             setLoading(false);
-            setStep('input');
         }
     };
     
     const handleGuestSignIn = async () => {
         setLoading(true);
-        setStep('guest');
         try {
             await signInAnonymously(auth);
             router.push('/dashboard');
@@ -184,7 +178,6 @@ export function UnifiedAuthForm() {
             toast({ variant: 'destructive', title: 'Guest Sign-In Failed', description: 'Could not sign in as a guest. Please try again.' });
         } finally {
             setLoading(false);
-            setStep('input');
         }
     };
 
@@ -249,7 +242,7 @@ export function UnifiedAuthForm() {
                         </FormItem>
                     )} />
                     <Button type="submit" disabled={loading} className="w-full">
-                        {loading && step === 'input' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Continue
                     </Button>
                 </form>
@@ -263,11 +256,11 @@ export function UnifiedAuthForm() {
                 </div>
             </div>
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
-                {loading && step === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
                 Continue with Google
             </Button>
             <Button variant="secondary" className="w-full" onClick={handleGuestSignIn} disabled={loading}>
-                {loading && step === 'guest' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <User className="mr-2 h-4 w-4" />}
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <User className="mr-2 h-4 w-4" />}
                 Continue as Guest
             </Button>
         </div>
