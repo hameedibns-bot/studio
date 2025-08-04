@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/firebase/client';
 import { 
@@ -19,7 +19,8 @@ import {
     sendSignInLinkToEmail, 
     ConfirmationResult, 
     GoogleAuthProvider, 
-    signInWithPopup 
+    signInWithPopup,
+    signInAnonymously
 } from "firebase/auth";
 import { useToast } from '@/hooks/use-toast';
 
@@ -48,22 +49,12 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function UnifiedAuthForm() {
     const [loading, setLoading] = useState(false);
-    const [step, setStep] = useState<'input' | 'otp' | 'email-sent'>('input');
+    const [step, setStep] = useState<'input' | 'otp' | 'email-sent' | 'google' | 'guest'>('input');
     const [loginHint, setLoginHint] = useState('');
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const router = useRouter();
     const { toast } = useToast();
     const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
-
-    const identifierForm = useForm<z.infer<typeof identifierSchema>>({
-        resolver: zodResolver(identifierSchema),
-        defaultValues: { identifier: '' },
-    });
-
-    const otpForm = useForm<z.infer<typeof otpSchema>>({
-        resolver: zodResolver(otpSchema),
-        defaultValues: { otp: '' },
-    });
 
     // Handle email link sign-in on component mount
     useEffect(() => {
@@ -91,13 +82,11 @@ export function UnifiedAuthForm() {
         handleEmailLinkSignIn();
     }, [router, toast]);
     
-    // Initialize and clean up reCAPTCHA
+    // Initialize reCAPTCHA on mount
     useEffect(() => {
-        if (!recaptchaVerifierRef.current) {
-            recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible'
-            });
-        }
+        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible'
+        });
         
         return () => {
             recaptchaVerifierRef.current?.clear();
@@ -134,7 +123,10 @@ export function UnifiedAuthForm() {
                 setStep('otp');
                 toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
             } catch (error: any) {
-                 toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again.` });
+                 toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again. ${error.message}` });
+                 if (recaptchaVerifierRef.current) {
+                    recaptchaVerifierRef.current.clear();
+                 }
             }
         } else {
             identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
@@ -167,6 +159,7 @@ export function UnifiedAuthForm() {
 
     const handleGoogleSignIn = async () => {
         setLoading(true);
+        setStep('google');
         try {
             const provider = new GoogleAuthProvider();
             await signInWithPopup(auth, provider);
@@ -177,8 +170,33 @@ export function UnifiedAuthForm() {
             }
         } finally {
             setLoading(false);
+            setStep('input');
         }
     };
+    
+    const handleGuestSignIn = async () => {
+        setLoading(true);
+        setStep('guest');
+        try {
+            await signInAnonymously(auth);
+            router.push('/dashboard');
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Guest Sign-In Failed', description: 'Could not sign in as a guest. Please try again.' });
+        } finally {
+            setLoading(false);
+            setStep('input');
+        }
+    };
+
+    const identifierForm = useForm<z.infer<typeof identifierSchema>>({
+        resolver: zodResolver(identifierSchema),
+        defaultValues: { identifier: '' },
+    });
+
+    const otpForm = useForm<z.infer<typeof otpSchema>>({
+        resolver: zodResolver(otpSchema),
+        defaultValues: { otp: '' },
+    });
 
     if (step === 'email-sent') {
         return (
@@ -231,7 +249,7 @@ export function UnifiedAuthForm() {
                         </FormItem>
                     )} />
                     <Button type="submit" disabled={loading} className="w-full">
-                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {loading && step === 'input' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Continue
                     </Button>
                 </form>
@@ -241,12 +259,16 @@ export function UnifiedAuthForm() {
                     <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                    <span className="bg-card px-2 text-muted-foreground">Or</span>
                 </div>
             </div>
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
-                Google
+                {loading && step === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
+                Continue with Google
+            </Button>
+            <Button variant="secondary" className="w-full" onClick={handleGuestSignIn} disabled={loading}>
+                {loading && step === 'guest' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <User className="mr-2 h-4 w-4" />}
+                Continue as Guest
             </Button>
         </div>
     );
