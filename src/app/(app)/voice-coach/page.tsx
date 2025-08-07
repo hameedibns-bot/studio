@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Mic, MicOff, Languages, Square, MessageCircle, Star, Sparkles, Check, ThumbsUp, BrainCircuit } from 'lucide-react';
+import { Loader2, Mic, MicOff, Languages, Square, Sparkles, BrainCircuit, Check, ThumbsUp, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateSpokenResponse, VoiceCoachInput, VoiceCoachOutput } from '@/ai/flows/voice-coach-flow';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -36,63 +36,10 @@ export default function VoiceCoachPage() {
     
     const recognitionRef = useRef<any>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
+    const userStoppedManually = useRef(false);
     const { toast } = useToast();
 
-    useEffect(() => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = true;
-            recognitionRef.current.interimResults = true;
-            recognitionRef.current.lang = selectedLang;
-
-            recognitionRef.current.onresult = (event: any) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                     if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-                setTranscript(prev => prev + finalTranscript);
-            };
-
-            recognitionRef.current.onerror = (event: any) => {
-                toast({ variant: 'destructive', title: 'Speech Recognition Error', description: event.error });
-                setIsListening(false);
-            };
-        } else {
-             toast({ variant: 'destructive', title: 'Not Supported', description: "Your browser doesn't support speech recognition." });
-        }
-    }, [selectedLang, toast]);
-    
-    useEffect(() => {
-      if (audioUrl && audioRef.current) {
-        audioRef.current.play().catch(e => {
-            console.error("Audio playback failed:", e);
-            toast({ variant: 'destructive', title: 'Audio Error', description: 'Could not play audio.' });
-        });
-      }
-    }, [audioUrl, toast]);
-
-    const toggleListening = () => {
-        if (!recognitionRef.current) return;
-        if (isListening) {
-            recognitionRef.current.stop();
-            setIsListening(false);
-        } else {
-            setTranscript('');
-            setAudioUrl(null);
-            setAiResponseText('');
-            setFeedback(null);
-            recognitionRef.current.start();
-            setIsListening(true);
-        }
-    };
-
-    const handleGenerateResponse = async (text: string) => {
+    const handleGenerateResponse = useCallback(async (text: string) => {
         if (!text) {
             toast({ variant: 'destructive', title: 'Error', description: 'Please say something first.' });
             return;
@@ -121,15 +68,72 @@ export default function VoiceCoachPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [interviewMode, conversationHistory, toast]);
 
-    const handleStopAndProcess = () => {
-        if (isListening) {
-            recognitionRef.current.stop();
-            setIsListening(false);
-            handleGenerateResponse(transcript);
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            toast({ variant: 'destructive', title: 'Not Supported', description: "Your browser doesn't support speech recognition." });
+            return;
         }
-    }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = selectedLang;
+
+        recognition.onresult = (event: any) => {
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                 if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                }
+            }
+            if (finalTranscript) {
+                setTranscript(prev => prev.trim() ? `${prev.trim()} ${finalTranscript.trim()}`: finalTranscript.trim());
+            }
+        };
+
+        recognition.onerror = (event: any) => {
+            toast({ variant: 'destructive', title: 'Speech Recognition Error', description: event.error });
+            setIsListening(false);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+            if (userStoppedManually.current && transcript.trim()) {
+                handleGenerateResponse(transcript);
+            }
+             userStoppedManually.current = false;
+        };
+
+        recognitionRef.current = recognition;
+    }, [selectedLang, toast, handleGenerateResponse, transcript]);
+    
+    useEffect(() => {
+      if (audioUrl && audioRef.current) {
+        audioRef.current.play().catch(e => {
+            console.error("Audio playback failed:", e);
+            toast({ variant: 'destructive', title: 'Audio Error', description: 'Could not play audio.' });
+        });
+      }
+    }, [audioUrl, toast]);
+
+    const toggleListening = () => {
+        if (!recognitionRef.current) return;
+        
+        if (isListening) {
+            userStoppedManually.current = true;
+            recognitionRef.current.stop();
+        } else {
+            setTranscript('');
+            setAudioUrl(null);
+            setAiResponseText('');
+            setFeedback(null);
+            recognitionRef.current.start();
+            setIsListening(true);
+        }
+    };
 
     const startInterview = () => {
         setConversationHistory([]);
@@ -195,36 +199,32 @@ export default function VoiceCoachPage() {
                             />
                             <div className="flex flex-col sm:flex-row gap-4">
                                 {interviewMode ? (
-                                    <Button onClick={startInterview} disabled={loading} className="flex-1">
+                                    <Button onClick={startInterview} disabled={loading || isListening} className="flex-1">
                                         <Sparkles className="mr-2" /> Start Interview
                                     </Button>
                                 ) : (
-                                    <Button onClick={toggleListening} disabled={loading} variant={isListening ? 'secondary' : 'outline'} className="flex-1">
+                                    <Button onClick={toggleListening} disabled={loading} variant={isListening ? 'secondary' : 'default'} className="flex-1">
                                         {isListening ? <MicOff className="mr-2" /> : <Mic className="mr-2" />}
-                                        {isListening ? 'Stop' : 'Start Recording'}
+                                        {isListening ? 'Stop Recording' : 'Start Recording'}
                                     </Button>
                                 )}
-                                <Button onClick={() => handleGenerateResponse(transcript)} disabled={loading || !transcript} className="flex-1">
-                                    {loading ? <Loader2 className="mr-2 animate-spin" /> : <Sparkles className="mr-2"/>}
-                                    Get AI Response
-                                </Button>
                             </div>
                         </div>
 
                         <div className="space-y-4">
                            <h3 className="font-semibold text-lg">AI Coach Response</h3>
-                           <Card className="min-h-[150px] bg-muted/30 p-4">
+                           <Card className="min-h-[150px] bg-muted/30 p-4 flex items-center justify-center">
                                {loading ? (
                                    <div className="flex items-center justify-center h-full">
                                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
                                    </div>
                                ) : (
-                                   <p className="text-muted-foreground">{aiResponseText || 'AI response will appear here.'}</p>
+                                   <p className="text-muted-foreground text-center">{aiResponseText || 'AI response will appear here.'}</p>
                                )}
                            </Card>
-                            {audioUrl && (
+                            {audioUrl && !loading && (
                                <div className="flex items-center justify-center gap-4 p-2 border rounded-lg bg-muted/50">
-                                    <audio ref={audioRef} src={audioUrl} onEnded={() => setAudioUrl(null)} />
+                                    <audio ref={audioRef} src={audioUrl} onEnded={() => setAudioUrl(null)} autoPlay />
                                     <p className="text-sm font-medium">Playing AI response...</p>
                                     <Button onClick={stopPlayback} variant="ghost" size="icon">
                                         <Square className="w-5 h-5" />

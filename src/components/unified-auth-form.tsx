@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -54,6 +54,7 @@ export function UnifiedAuthForm() {
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
     const router = useRouter();
     const { toast } = useToast();
+    const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
     // Handle email link sign-in on component mount
     useEffect(() => {
@@ -71,9 +72,8 @@ export function UnifiedAuthForm() {
                         router.push('/dashboard');
                     } catch (error) {
                         toast({ variant: 'destructive', title: 'Error', description: 'Failed to sign in. The link may have expired or been used.' });
-                        router.push('/auth');
-                    } finally {
                         setLoading(false);
+                        router.push('/auth');
                     }
                 }
             }
@@ -81,17 +81,16 @@ export function UnifiedAuthForm() {
         handleEmailLinkSignIn();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-    
-    // Initialize reCAPTCHA on mount
-    useEffect(() => {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'invisible'
-        });
-        
-        return () => {
-            window.recaptchaVerifier.clear();
-        };
-    }, []);
+
+    // Function to get or create RecaptchaVerifier
+    const getRecaptchaVerifier = () => {
+        if (!recaptchaVerifierRef.current) {
+            recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+            });
+        }
+        return recaptchaVerifierRef.current;
+    }
 
     const handleIdentifierSubmit = async (values: z.infer<typeof identifierSchema>) => {
         setLoading(true);
@@ -113,7 +112,7 @@ export function UnifiedAuthForm() {
             }
         } else if (phoneRegex.test(identifier)) {
             try {
-                const verifier = window.recaptchaVerifier;
+                const verifier = getRecaptchaVerifier();
                 const result = await signInWithPhoneNumber(auth, identifier, verifier);
                 setConfirmationResult(result);
                 setLoginHint(identifier);
@@ -121,9 +120,11 @@ export function UnifiedAuthForm() {
                 toast({ title: 'OTP Sent', description: `A code has been sent to ${identifier}.`});
             } catch (error: any) {
                  toast({ variant: 'destructive', title: 'Error', description: `Failed to send OTP. Please check the number and try again. ${error.message}` });
-                 window.recaptchaVerifier.render().then((widgetId) => {
-                    grecaptcha.reset(widgetId);
-                 });
+                 // Reset reCAPTCHA
+                 if (recaptchaVerifierRef.current) {
+                    recaptchaVerifierRef.current.clear();
+                    recaptchaVerifierRef.current = null;
+                 }
             }
         } else {
             identifierForm.setError("identifier", { type: "manual", message: "Please enter a valid email or phone number (e.g., +1234567890)." });
