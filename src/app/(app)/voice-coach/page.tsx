@@ -5,10 +5,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Mic, MicOff, Languages, Square } from 'lucide-react';
+import { Loader2, Mic, MicOff, Languages, Square, MessageCircle, Star, Sparkles, Check, ThumbsUp, BrainCircuit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateSpokenResponse, VoiceCoachInput } from '@/ai/flows/voice-coach-flow';
+import { generateSpokenResponse, VoiceCoachInput, VoiceCoachOutput } from '@/ai/flows/voice-coach-flow';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const languages = [
     { code: 'en-US', name: 'English' },
@@ -18,15 +21,21 @@ const languages = [
     { code: 'zh-CN', name: 'Mandarin Chinese' },
 ];
 
+type Feedback = VoiceCoachOutput['feedback'];
+
 export default function VoiceCoachPage() {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState('');
     const [selectedLang, setSelectedLang] = useState('en-US');
     const [loading, setLoading] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [aiResponseText, setAiResponseText] = useState('');
+    const [feedback, setFeedback] = useState<Feedback>(null);
+    const [interviewMode, setInterviewMode] = useState(false);
+    const [conversationHistory, setConversationHistory] = useState<string[]>([]);
+    
     const recognitionRef = useRef<any>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
-
     const { toast } = useToast();
 
     useEffect(() => {
@@ -38,13 +47,15 @@ export default function VoiceCoachPage() {
             recognitionRef.current.lang = selectedLang;
 
             recognitionRef.current.onresult = (event: any) => {
+                let interimTranscript = '';
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
+                     if (event.results[i].isFinal) {
                         finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
                     }
                 }
-                 // Use functional update to avoid stale state
                 setTranscript(prev => prev + finalTranscript);
             };
 
@@ -67,34 +78,40 @@ export default function VoiceCoachPage() {
     }, [audioUrl, toast]);
 
     const toggleListening = () => {
-        if (!recognitionRef.current) {
-            toast({ variant: 'destructive', title: 'Not Supported', description: "Speech recognition is not available in your browser." });
-            return;
-        }
-
+        if (!recognitionRef.current) return;
         if (isListening) {
             recognitionRef.current.stop();
             setIsListening(false);
         } else {
             setTranscript('');
             setAudioUrl(null);
+            setAiResponseText('');
+            setFeedback(null);
             recognitionRef.current.start();
             setIsListening(true);
         }
     };
 
-    const handleGenerateResponse = async () => {
-        if (!transcript) {
+    const handleGenerateResponse = async (text: string) => {
+        if (!text) {
             toast({ variant: 'destructive', title: 'Error', description: 'Please say something first.' });
             return;
         }
         setLoading(true);
         setAudioUrl(null);
+        setAiResponseText('');
+        setFeedback(null);
         try {
-            const input: VoiceCoachInput = { text: transcript };
+            const input: VoiceCoachInput = { text, interviewMode, conversationHistory };
             const result = await generateSpokenResponse(input);
+            
+            const newHistory = [...conversationHistory, `User: ${text}`, `AI: ${result.responseText}`];
+            setConversationHistory(newHistory);
+            
             if (result.media) {
                 setAudioUrl(result.media);
+                setAiResponseText(result.responseText);
+                setFeedback(result.feedback);
             } else {
                 throw new Error('No audio data received.');
             }
@@ -105,28 +122,50 @@ export default function VoiceCoachPage() {
             setLoading(false);
         }
     };
+
+    const handleStopAndProcess = () => {
+        if (isListening) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+            handleGenerateResponse(transcript);
+        }
+    }
+
+    const startInterview = () => {
+        setConversationHistory([]);
+        setTranscript('start');
+        handleGenerateResponse('start');
+    }
     
     const stopPlayback = () => {
         if(audioRef.current){
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
-            setAudioUrl(null); // Clear audio state to hide the player
+            setAudioUrl(null);
         }
     }
 
     return (
-        <div className="space-y-8 max-w-2xl mx-auto">
+        <div className="space-y-8 max-w-4xl mx-auto">
             <header className="text-center">
                 <h2 className="text-4xl font-headline font-bold">AI Voice Coach</h2>
                 <p className="text-muted-foreground text-lg mt-2">
-                    Interact with your AI coach using your voice.
+                    {interviewMode ? 'Practice your interview skills with an AI coach.' : 'Interact with your AI coach using your voice.'}
                 </p>
             </header>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Conversation</CardTitle>
-                    <CardDescription>Select your language, start recording, and get a spoken response from your coach.</CardDescription>
+                    <div className='flex justify-between items-start'>
+                        <div>
+                            <CardTitle>Conversation</CardTitle>
+                            <CardDescription>Select a mode, start recording, and get a spoken response.</CardDescription>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Switch id="interview-mode" checked={interviewMode} onCheckedChange={setInterviewMode} />
+                            <Label htmlFor="interview-mode" className="font-semibold">Interview Practice</Label>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="flex items-center gap-4">
@@ -143,35 +182,86 @@ export default function VoiceCoachPage() {
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <h3 className="font-semibold">Your message:</h3>
-                        <Textarea 
-                            value={transcript}
-                            onChange={(e) => setTranscript(e.target.value)}
-                            placeholder="Your transcribed text will appear here..." 
-                            className="min-h-[100px]"
-                        />
+                    <Separator />
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                             <h3 className="font-semibold text-lg">Your Input</h3>
+                             <Textarea 
+                                value={transcript}
+                                onChange={(e) => setTranscript(e.target.value)}
+                                placeholder="Your transcribed text will appear here..." 
+                                className="min-h-[150px] bg-muted/30"
+                            />
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                {interviewMode ? (
+                                    <Button onClick={startInterview} disabled={loading} className="flex-1">
+                                        <Sparkles className="mr-2" /> Start Interview
+                                    </Button>
+                                ) : (
+                                    <Button onClick={toggleListening} disabled={loading} variant={isListening ? 'secondary' : 'outline'} className="flex-1">
+                                        {isListening ? <MicOff className="mr-2" /> : <Mic className="mr-2" />}
+                                        {isListening ? 'Stop' : 'Start Recording'}
+                                    </Button>
+                                )}
+                                <Button onClick={() => handleGenerateResponse(transcript)} disabled={loading || !transcript} className="flex-1">
+                                    {loading ? <Loader2 className="mr-2 animate-spin" /> : <Sparkles className="mr-2"/>}
+                                    Get AI Response
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                           <h3 className="font-semibold text-lg">AI Coach Response</h3>
+                           <Card className="min-h-[150px] bg-muted/30 p-4">
+                               {loading ? (
+                                   <div className="flex items-center justify-center h-full">
+                                       <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                                   </div>
+                               ) : (
+                                   <p className="text-muted-foreground">{aiResponseText || 'AI response will appear here.'}</p>
+                               )}
+                           </Card>
+                            {audioUrl && (
+                               <div className="flex items-center justify-center gap-4 p-2 border rounded-lg bg-muted/50">
+                                    <audio ref={audioRef} src={audioUrl} onEnded={() => setAudioUrl(null)} />
+                                    <p className="text-sm font-medium">Playing AI response...</p>
+                                    <Button onClick={stopPlayback} variant="ghost" size="icon">
+                                        <Square className="w-5 h-5" />
+                                        <span className="sr-only">Stop Playback</span>
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <Button onClick={toggleListening} disabled={loading} variant={isListening ? 'destructive' : 'outline'} className="flex-1">
-                            {isListening ? <MicOff className="mr-2" /> : <Mic className="mr-2" />}
-                            {isListening ? 'Stop Listening' : 'Start Listening'}
-                        </Button>
-                        <Button onClick={handleGenerateResponse} disabled={loading || !transcript} className="flex-1">
-                            {loading ? <Loader2 className="mr-2 animate-spin" /> : null}
-                            Get AI Response
-                        </Button>
-                    </div>
-
-                    {audioUrl && (
-                       <div className="flex items-center justify-center gap-4 p-4 border rounded-lg bg-muted/50">
-                            <audio ref={audioRef} src={audioUrl} onEnded={() => setAudioUrl(null)} />
-                            <p className="text-sm font-medium">Playing AI response...</p>
-                            <Button onClick={stopPlayback} variant="ghost" size="icon">
-                                <Square className="w-5 h-5" />
-                                <span className="sr-only">Stop Playback</span>
-                            </Button>
+                    {interviewMode && feedback && !loading && (
+                        <div className="space-y-4 pt-4">
+                            <Separator />
+                            <h3 className="font-semibold text-lg flex items-center gap-2"><BrainCircuit className="w-6 h-6 text-primary"/> Interview Feedback</h3>
+                            <div className="grid md:grid-cols-3 gap-4">
+                                <Card>
+                                    <CardHeader className="flex-row items-center gap-2 pb-2">
+                                        <Check className="w-5 h-5 text-green-500" />
+                                        <CardTitle className="text-base">Clarity</CardTitle>
+                                    </CardHeader>
+                                    <CardContent><p className="text-sm text-muted-foreground">{feedback.clarity}</p></CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="flex-row items-center gap-2 pb-2">
+                                        <ThumbsUp className="w-5 h-5 text-blue-500" />
+                                        <CardTitle className="text-base">Relevance</CardTitle>
+                                    </CardHeader>
+                                    <CardContent><p className="text-sm text-muted-foreground">{feedback.relevance}</p></CardContent>
+                                </Card>
+                                 <Card>
+                                    <CardHeader className="flex-row items-center gap-2 pb-2">
+                                        <Star className="w-5 h-5 text-yellow-500" />
+                                        <CardTitle className="text-base">Confidence</CardTitle>
+                                    </CardHeader>
+                                    <CardContent><p className="text-sm text-muted-foreground">{feedback.confidence}</p></CardContent>
+                                </Card>
+                            </div>
                         </div>
                     )}
                 </CardContent>

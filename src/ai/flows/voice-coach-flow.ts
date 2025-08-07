@@ -13,13 +13,22 @@ import wav from 'wav';
 import { googleAI } from '@genkit-ai/googleai';
 
 export const VoiceCoachInputSchema = z.object({
-  text: z.string().describe('The user\'s transcribed text.'),
+  text: z.string().describe("The user's transcribed text."),
+  interviewMode: z.boolean().optional().describe('Whether the user is in interview practice mode.'),
+  conversationHistory: z.array(z.string()).optional().describe('The history of the conversation so far.'),
 });
 export type VoiceCoachInput = z.infer<typeof VoiceCoachInputSchema>;
+
+const InterviewFeedbackSchema = z.object({
+    clarity: z.string().describe("Feedback on the clarity of the user's response."),
+    relevance: z.string().describe("Feedback on the relevance of the user's response to the question."),
+    confidence: z.string().describe("Feedback on the perceived confidence of the user's response."),
+});
 
 export const VoiceCoachOutputSchema = z.object({
   responseText: z.string(),
   media: z.string().describe("A data URI of the spoken response in WAV format. Format: 'data:audio/wav;base64,<encoded_data>'."),
+  feedback: InterviewFeedbackSchema.optional().describe('Structured feedback for the interview response.'),
 });
 export type VoiceCoachOutput = z.infer<typeof VoiceCoachOutputSchema>;
 
@@ -38,6 +47,34 @@ User said: {{{text}}}
 Your response:`,
 });
 
+const interviewPrompt = ai.definePrompt({
+    name: 'interviewPrompt',
+    input: { schema: VoiceCoachInputSchema },
+    output: { schema: VoiceCoachOutputSchema.pick({ responseText: true, feedback: true }) },
+    prompt: `You are an expert AI interview coach. You are conducting a practice interview.
+If the conversation history is empty or the user says "start", begin by asking a common opening interview question (e.g., "Tell me about yourself.").
+Otherwise, respond to the user's answer and ask a relevant follow-up question.
+
+After formulating your next question, provide structured feedback on the user's *previous* answer.
+
+Conversation History:
+{{#if conversationHistory}}
+{{#each conversationHistory}}
+- {{this}}
+{{/each}}
+{{else}}
+No history yet. This is the start of the interview.
+{{/if}}
+
+User's latest response: "{{{text}}}"
+
+Your task:
+1.  Formulate your response, which should be the next interview question.
+2.  Provide structured, constructive feedback on the user's last answer based on clarity, relevance, and confidence.
+`,
+});
+
+
 const voiceCoachFlow = ai.defineFlow(
   {
     name: 'voiceCoachFlow',
@@ -45,9 +82,17 @@ const voiceCoachFlow = ai.defineFlow(
     outputSchema: VoiceCoachOutputSchema,
   },
   async (input) => {
-    // 1. Get a text response from the LLM
-    const { output } = await coachingPrompt(input);
-    const responseText = output?.response || "I'm sorry, I didn't understand. Could you please rephrase?";
+    let responseText: string;
+    let feedback: z.infer<typeof InterviewFeedbackSchema> | undefined;
+
+    if (input.interviewMode) {
+        const { output } = await interviewPrompt(input);
+        responseText = output?.responseText ?? "That's an interesting perspective. Let's move on. What are your biggest strengths?";
+        feedback = output?.feedback;
+    } else {
+        const { output } = await coachingPrompt(input);
+        responseText = output?.response ?? "I'm sorry, I didn't understand. Could you please rephrase?";
+    }
 
     // 2. Convert the text response to speech
     const { media } = await ai.generate({
@@ -78,6 +123,7 @@ const voiceCoachFlow = ai.defineFlow(
     return {
       responseText: responseText,
       media: 'data:audio/wav;base64,' + wavData,
+      feedback: feedback,
     };
   }
 );
