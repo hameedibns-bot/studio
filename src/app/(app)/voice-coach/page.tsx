@@ -16,9 +16,23 @@ import { Label } from '@/components/ui/label';
 // Extend Window interface for SpeechRecognition API
 declare global {
     interface Window {
-        SpeechRecognition: any;
-        webkitSpeechRecognition: any;
+        SpeechRecognition: typeof SpeechRecognition;
+        webkitSpeechRecognition: typeof SpeechRecognition;
     }
+    interface SpeechRecognition extends EventTarget {
+        continuous: boolean;
+        interimResults: boolean;
+        lang: string;
+        start(): void;
+        stop(): void;
+        onresult: (event: any) => void;
+        onerror: (event: any) => void;
+        onend: () => void;
+    }
+    var SpeechRecognition: {
+        prototype: SpeechRecognition;
+        new(): SpeechRecognition;
+    };
 }
 
 const languages = [
