@@ -13,6 +13,14 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
+// Extend Window interface for SpeechRecognition API
+declare global {
+    interface Window {
+        SpeechRecognition: any;
+        webkitSpeechRecognition: any;
+    }
+}
+
 const languages = [
     { code: 'en-US', name: 'English' },
     { code: 'ur-PK', name: 'Urdu' },
@@ -30,7 +38,7 @@ export default function VoiceCoachPage() {
     const [loading, setLoading] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [aiResponseText, setAiResponseText] = useState('');
-    const [feedback, setFeedback] = useState<Feedback>(null);
+    const [feedback, setFeedback] = useState<Feedback>(undefined);
     const [interviewMode, setInterviewMode] = useState(false);
     const [conversationHistory, setConversationHistory] = useState<string[]>([]);
     
@@ -47,7 +55,7 @@ export default function VoiceCoachPage() {
         setLoading(true);
         setAudioUrl(null);
         setAiResponseText('');
-        setFeedback(null);
+        setFeedback(undefined);
         try {
             const input: VoiceCoachInput = { text, interviewMode, conversationHistory };
             const result = await generateSpokenResponse(input);
@@ -129,7 +137,7 @@ export default function VoiceCoachPage() {
             setTranscript('');
             setAudioUrl(null);
             setAiResponseText('');
-            setFeedback(null);
+            setFeedback(undefined);
             recognitionRef.current.start();
             setIsListening(true);
         }
